@@ -9,6 +9,15 @@ repository = "https://github.com/shadow3aaa/ratatui-markdown"
 [features]
 default = []
 markdown = []
+highlight = []
+image = []
+mermaid = []
+scroll = []
+tree = []
+preview = []
+viewer = []
+
+[dependencies]
 
 [dependencies]
 pulldown-cmark = "0.13"
