@@ -11,7 +11,7 @@
 
 ```toml
 [dependencies]
-ratatui-markdown = "0.1"
+daat-locus-md = "0.1"
 ```
 
 默认启用所有功能（`markdown`、`scroll`、`tree`、`preview`、`mermaid`、`image`、`viewer`）。
@@ -22,13 +22,13 @@ ratatui-markdown = "0.1"
 
 ```toml
 # 仅 Markdown 渲染
-ratatui-markdown = { version = "0.1", default-features = false, features = ["markdown"] }
+daat-locus-md = { version = "0.1", default-features = false, features = ["markdown"] }
 
 # 仅滚动系统
-ratatui-markdown = { version = "0.1", default-features = false, features = ["scroll"] }
+daat-locus-md = { version = "0.1", default-features = false, features = ["scroll"] }
 
 # 树视图（会引入 scroll、serde_json 和 toml）
-ratatui-markdown = { version = "0.1", default-features = false, features = ["tree"] }
+daat-locus-md = { version = "0.1", default-features = false, features = ["tree"] }
 ```
 
 ## 基本用法
@@ -36,8 +36,8 @@ ratatui-markdown = { version = "0.1", default-features = false, features = ["tre
 ### 渲染 Markdown
 
 ```rust
-use ratatui_markdown::markdown::MarkdownRenderer;
-use ratatui_markdown::theme::RichTextTheme;
+use daat_locus_md::markdown::MarkdownRenderer;
+use daat_locus_md::theme::RichTextTheme;
 
 // 创建渲染器，指定最大内容宽度
 let renderer = MarkdownRenderer::new(80);
@@ -52,7 +52,7 @@ let lines = renderer.render(&blocks, &my_theme);
 ### 浏览树视图
 
 ```rust
-use ratatui_markdown::tree::CollapsibleTree;
+use daat_locus_md::tree::CollapsibleTree;
 
 // 将 JSON 解析为可折叠树
 let json_str = r#"{"name": "project", "deps": {"ratatui": "0.29", "serde": "1.0"}}"#;
@@ -73,8 +73,8 @@ tree.toggle("deps/serde");
 `MarkdownPreview` 组件将所有功能整合到一个可滚动视图中：
 
 ```rust
-use ratatui_markdown::preview::MarkdownPreview;
-use ratatui_markdown::theme::RichTextTheme;
+use daat_locus_md::preview::MarkdownPreview;
+use daat_locus_md::theme::RichTextTheme;
 
 let mut preview = MarkdownPreview::new()
     .with_left_padding(true);
@@ -105,7 +105,7 @@ fn draw(f: &mut ratatui::Frame, preview: &mut MarkdownPreview, theme: &impl Rich
 
 ```rust
 use ratatui::style::Color;
-use ratatui_markdown::theme::{Generation, RichTextTheme};
+use daat_locus_md::theme::{Generation, RichTextTheme};
 
 struct MyTheme;
 

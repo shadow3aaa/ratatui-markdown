@@ -116,7 +116,7 @@ pub fn make_branch_dispatch_line(kind: EntryKind, ...) -> Line<'static>;
 ## Exemple
 
 ```rust
-use ratatui_markdown::tree::CollapsibleTree;
+use daat_locus_md::tree::CollapsibleTree;
 
 let toml_content = r#"
 [package]

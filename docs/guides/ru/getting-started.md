@@ -11,7 +11,7 @@
 
 ```toml
 [dependencies]
-ratatui-markdown = "0.1"
+daat-locus-md = "0.1"
 ```
 
 Это включает все возможности по умолчанию (`markdown`, `scroll`, `tree`, `preview`, `mermaid`, `image`, `viewer`).
@@ -22,13 +22,13 @@ ratatui-markdown = "0.1"
 
 ```toml
 # Только рендеринг Markdown
-ratatui-markdown = { version = "0.1", default-features = false, features = ["markdown"] }
+daat-locus-md = { version = "0.1", default-features = false, features = ["markdown"] }
 
 # Только система прокрутки
-ratatui-markdown = { version = "0.1", default-features = false, features = ["scroll"] }
+daat-locus-md = { version = "0.1", default-features = false, features = ["scroll"] }
 
 # Вид дерева (добавляет scroll, serde_json и toml)
-ratatui-markdown = { version = "0.1", default-features = false, features = ["tree"] }
+daat-locus-md = { version = "0.1", default-features = false, features = ["tree"] }
 ```
 
 ## Базовое Использование
@@ -36,8 +36,8 @@ ratatui-markdown = { version = "0.1", default-features = false, features = ["tre
 ### Рендеринг Markdown
 
 ```rust
-use ratatui_markdown::markdown::MarkdownRenderer;
-use ratatui_markdown::theme::RichTextTheme;
+use daat_locus_md::markdown::MarkdownRenderer;
+use daat_locus_md::theme::RichTextTheme;
 
 // Создание рендерера с максимальной шириной содержимого
 let renderer = MarkdownRenderer::new(80);
@@ -52,7 +52,7 @@ let lines = renderer.render(&blocks, &my_theme);
 ### Навигация по Дереву
 
 ```rust
-use ratatui_markdown::tree::CollapsibleTree;
+use daat_locus_md::tree::CollapsibleTree;
 
 // Парсинг JSON в сворачиваемое дерево
 let json_str = r#"{"name": "project", "deps": {"ratatui": "0.29", "serde": "1.0"}}"#;
@@ -73,8 +73,8 @@ tree.toggle("deps/serde");
 Виджет `MarkdownPreview` объединяет всё в единое прокручиваемое представление:
 
 ```rust
-use ratatui_markdown::preview::MarkdownPreview;
-use ratatui_markdown::theme::RichTextTheme;
+use daat_locus_md::preview::MarkdownPreview;
+use daat_locus_md::theme::RichTextTheme;
 
 let mut preview = MarkdownPreview::new()
     .with_left_padding(true);
@@ -105,7 +105,7 @@ fn draw(f: &mut ratatui::Frame, preview: &mut MarkdownPreview, theme: &impl Rich
 
 ```rust
 use ratatui::style::Color;
-use ratatui_markdown::theme::{Generation, RichTextTheme};
+use daat_locus_md::theme::{Generation, RichTextTheme};
 
 struct MyTheme;
 

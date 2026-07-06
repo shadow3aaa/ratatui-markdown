@@ -4,12 +4,12 @@ mod common;
 use common::{
     draw_frame, lorem, poll_and_handle, restore_terminal, setup_terminal, AppState, Theme,
 };
-use ratatui_markdown::markdown::MarkdownRenderer;
+use daat_locus_md::markdown::MarkdownRenderer;
 
 const MARKDOWN_TEMPLATE: &str = r#"
 # Getting Started
 
-This is a **basic** markdown rendering example using `ratatui-markdown`.
+This is a **basic** markdown rendering example using `daat-locus-md`.
 
 ## Features
 

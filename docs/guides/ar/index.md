@@ -1,8 +1,8 @@
 <div align="center">
-  <img src="../../../examples/logo.webp" alt="ratatui-markdown logo" width="200" />
+  <img src="../../../examples/logo.webp" alt="daat-locus-md logo" width="200" />
 </div>
 
-# ratatui-markdown
+# daat-locus-md
 
 > مكتبة Rust توفر عرض Markdown ومخططات Mermaid وتلوين بناء الجملة وأشجار JSON/TOML قابلة للطي وعناصر تمرير غنية لـ ratatui.
 >
@@ -24,9 +24,9 @@
   </p>
 </div>
 
-## ما هو ratatui-markdown؟
+## ما هو daat-locus-md؟
 
-ratatui-markdown هي مكتبة عرض غنية بالميزات لواجهات المستخدم الطرفية المبنية بـ [ratatui](https://github.com/ratatui/ratatui). توفر عدة وحدات وظيفية يمكن استخدامها بشكل مستقل أو دمجها عبر عنصري `MarkdownPreview` / `MarkdownViewer`.
+daat-locus-md هي مكتبة عرض غنية بالميزات لواجهات المستخدم الطرفية المبنية بـ [ratatui](https://github.com/ratatui/ratatui). توفر عدة وحدات وظيفية يمكن استخدامها بشكل مستقل أو دمجها عبر عنصري `MarkdownPreview` / `MarkdownViewer`.
 
 ## الوحدات الأساسية
 
@@ -94,7 +94,7 @@ ratatui-markdown هي مكتبة عرض غنية بالميزات لواجهات
 
 ```toml
 [dependencies]
-ratatui-markdown = "0.3"
+daat-locus-md = "0.3"
 ```
 
 ### أمثلة
@@ -122,7 +122,7 @@ cargo run --example tree_list
 
 ```toml
 [dependencies]
-ratatui-markdown = { version = "0.3", default-features = false, features = ["markdown"] }
+daat-locus-md = { version = "0.3", default-features = false, features = ["markdown"] }
 ```
 
 | الميزة                | التبعيات                            | الوصف                                            | افتراضي |

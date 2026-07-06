@@ -1,8 +1,8 @@
 <div align="center">
-  <img src="../../../examples/logo.webp" alt="ratatui-markdown logo" width="200" />
+  <img src="../../../examples/logo.webp" alt="daat-locus-md logo" width="200" />
 </div>
 
-# ratatui-markdown
+# daat-locus-md
 
 > Библиотека Rust для рендеринга Markdown, диаграмм Mermaid, подсветки синтаксиса, сворачиваемых деревьев JSON/TOML и расширенных виджетов прокрутки для ratatui.
 >
@@ -24,9 +24,9 @@
   </p>
 </div>
 
-## Что такое ratatui-markdown?
+## Что такое daat-locus-md?
 
-ratatui-markdown — это многофункциональная библиотека рендеринга для терминальных пользовательских интерфейсов, построенная на [ratatui](https://github.com/ratatui/ratatui). Она предоставляет несколько функциональных модулей, которые можно использовать независимо или комбинировать через виджеты `MarkdownPreview` / `MarkdownViewer`.
+daat-locus-md — это многофункциональная библиотека рендеринга для терминальных пользовательских интерфейсов, построенная на [ratatui](https://github.com/ratatui/ratatui). Она предоставляет несколько функциональных модулей, которые можно использовать независимо или комбинировать через виджеты `MarkdownPreview` / `MarkdownViewer`.
 
 ## Основные Модули
 
@@ -94,7 +94,7 @@ ratatui-markdown — это многофункциональная библио�
 
 ```toml
 [dependencies]
-ratatui-markdown = "0.3"
+daat-locus-md = "0.3"
 ```
 
 ### Примеры
@@ -122,7 +122,7 @@ cargo run --example tree_list
 
 ```toml
 [dependencies]
-ratatui-markdown = { version = "0.3", default-features = false, features = ["markdown"] }
+daat-locus-md = { version = "0.3", default-features = false, features = ["markdown"] }
 ```
 
 | Функция               | Зависимости                         | Описание                                          | По умолчанию |

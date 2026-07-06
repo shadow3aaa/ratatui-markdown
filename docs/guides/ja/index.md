@@ -1,8 +1,8 @@
 <div align="center">
-  <img src="../../../examples/logo.webp" alt="ratatui-markdown logo" width="200" />
+  <img src="../../../examples/logo.webp" alt="daat-locus-md logo" width="200" />
 </div>
 
-# ratatui-markdown
+# daat-locus-md
 
 > ratatui 向けの Markdown レンダリング、Mermaid ダイアグラム、シンタックスハイライト、折りたたみ可能な JSON/TOML ツリー、そしてリッチなスクロールウィジェットを提供する Rust ライブラリです。
 >
@@ -24,9 +24,9 @@
   </p>
 </div>
 
-## ratatui-markdown とは？
+## daat-locus-md とは？
 
-ratatui-markdown は、[ratatui](https://github.com/ratatui/ratatui) 上に構築された、機能豊富なターミナル UI レンダリングライブラリです。複数の機能モジュールを提供し、独立して使用することも、`MarkdownPreview` / `MarkdownViewer` ウィジェットで組み合わせることもできます。
+daat-locus-md は、[ratatui](https://github.com/ratatui/ratatui) 上に構築された、機能豊富なターミナル UI レンダリングライブラリです。複数の機能モジュールを提供し、独立して使用することも、`MarkdownPreview` / `MarkdownViewer` ウィジェットで組み合わせることもできます。
 
 ## コアモジュール
 
@@ -94,7 +94,7 @@ tree-sitter ベースのコードブロックハイライト：
 
 ```toml
 [dependencies]
-ratatui-markdown = "0.3"
+daat-locus-md = "0.3"
 ```
 
 ### 例
@@ -122,7 +122,7 @@ cargo run --example tree_list
 
 ```toml
 [dependencies]
-ratatui-markdown = { version = "0.3", default-features = false, features = ["markdown"] }
+daat-locus-md = { version = "0.3", default-features = false, features = ["markdown"] }
 ```
 
 | 機能                 | 依存関係                            | 説明                                  | デフォルト |

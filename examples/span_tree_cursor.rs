@@ -10,7 +10,7 @@ use ratatui::{
     widgets::{Block, Borders, Padding, Paragraph},
     Frame,
 };
-use ratatui_markdown::scroll::{CursorLineMode, SpanTree, SpanTreeEntry};
+use daat_locus_md::scroll::{CursorLineMode, SpanTree, SpanTreeEntry};
 
 struct App {
     trees: [SpanTree; 2],

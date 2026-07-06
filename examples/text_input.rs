@@ -12,7 +12,7 @@ use ratatui::{
     widgets::{Block, Borders, Padding, Paragraph},
     Frame, Terminal,
 };
-use ratatui_markdown::text_input::{
+use daat_locus_md::text_input::{
     CursorBlinkController, CursorPosition, CursorShape, CursorStyle, InputMode, TextInput,
 };
 

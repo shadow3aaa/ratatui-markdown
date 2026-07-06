@@ -21,7 +21,7 @@ use ratatui_image::{
     protocol::Protocol,
     Image, Resize,
 };
-use ratatui_markdown::{
+use daat_locus_md::{
     markdown::{ImageResolver, MarkdownRenderer, RenderHooks},
     theme::RichTextTheme,
 };
@@ -116,9 +116,9 @@ LOREM_3
 "#;
 
 fn to_renderer_theme(
-    src: &ratatui_markdown::mermaid::theme::MermaidTheme,
+    src: &daat_locus_md::mermaid::theme::MermaidTheme,
 ) -> mermaid_rs_renderer::Theme {
-    use ratatui_markdown::mermaid::theme::{color_to_hex, GIT_COLORS_HSL};
+    use daat_locus_md::mermaid::theme::{color_to_hex, GIT_COLORS_HSL};
     let hex = |c: ratatui::style::Color| format!("#{}", color_to_hex(c));
     let pie: [String; 12] = src.pie_colors.map(hex);
     mermaid_rs_renderer::Theme {
@@ -180,7 +180,7 @@ fn to_renderer_theme(
 
 fn render_mermaid_to_image(
     source: &str,
-    mermaid_theme: &ratatui_markdown::mermaid::theme::MermaidTheme,
+    mermaid_theme: &daat_locus_md::mermaid::theme::MermaidTheme,
     font_w: u32,
     font_h: u32,
 ) -> Option<image::DynamicImage> {
@@ -302,7 +302,7 @@ impl MermaidImage {
 }
 
 struct MermaidImageHooks {
-    mermaid_theme: ratatui_markdown::mermaid::theme::MermaidTheme,
+    mermaid_theme: daat_locus_md::mermaid::theme::MermaidTheme,
     font_w: u32,
     font_h: u32,
 }
@@ -365,7 +365,7 @@ struct AppState {
     theme: Theme,
     picker: Picker,
     resolver: MermaidResolver,
-    blocks: Vec<ratatui_markdown::markdown::MarkdownBlock>,
+    blocks: Vec<daat_locus_md::markdown::MarkdownBlock>,
     images: Vec<MermaidImage>,
     scroll: u16,
     font_w: u16,
@@ -374,7 +374,7 @@ struct AppState {
 }
 
 impl AppState {
-    fn rebuild_output(&mut self) -> ratatui_markdown::markdown::image::MarkdownRenderOutput {
+    fn rebuild_output(&mut self) -> daat_locus_md::markdown::image::MarkdownRenderOutput {
         self.renderer.render_full(
             &self.blocks,
             &self.theme,

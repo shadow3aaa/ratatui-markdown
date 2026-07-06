@@ -108,7 +108,7 @@ impl AppTheme {
 
 ```rust
 use ratatui::style::Color;
-use ratatui_markdown::theme::{Generation, RichTextTheme};
+use daat_locus_md::theme::{Generation, RichTextTheme};
 
 struct CatppuccinMocha;
 

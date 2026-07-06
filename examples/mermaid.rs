@@ -4,13 +4,13 @@ mod common;
 use common::{
     draw_frame, lorem, poll_and_handle, restore_terminal, setup_terminal, AppState, Theme,
 };
-use ratatui_markdown::markdown::MarkdownRenderer;
+use daat_locus_md::markdown::MarkdownRenderer;
 
 const MARKDOWN_TEMPLATE: &str = r#"
 # Mermaid Diagrams
 
 This example renders **Mermaid diagrams** inline in markdown
-using the `mermaid` feature of `ratatui-markdown`.
+using the `mermaid` feature of `daat-locus-md`.
 
 ## Flowchart (TD)
 

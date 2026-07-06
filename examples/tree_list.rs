@@ -10,7 +10,7 @@ use ratatui::{
     widgets::{Block, Borders, Padding, Paragraph},
     Frame,
 };
-use ratatui_markdown::{
+use daat_locus_md::{
     constants::{BRANCH_END_SP, BRANCH_MID_SP, VLINE},
     scroll::{CursorLineMode, SpanTree, SpanTreeEntry},
 };

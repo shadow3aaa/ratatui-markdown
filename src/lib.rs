@@ -1,4 +1,4 @@
-//! # ratatui-markdown
+//! # daat-locus-md
 //!
 //! A Rust library providing markdown rendering, collapsible JSON/TOML tree views,
 //! and a rich hybrid scroll system — all built on top of [ratatui].
@@ -29,7 +29,7 @@
 //!
 //! ```toml
 //! [dependencies]
-//! ratatui-markdown = { version = "0.2", default-features = false, features = ["markdown"] }
+//! daat-locus-md = { version = "0.2", default-features = false, features = ["markdown"] }
 //! ```
 //!
 //! | Feature    | Requires                                | Description                               |
@@ -45,7 +45,7 @@
 //! ## Quick Start
 //!
 //! ```rust
-//! use ratatui_markdown::preview::MarkdownPreview;
+//! use daat_locus_md::preview::MarkdownPreview;
 //!
 //! let mut preview = MarkdownPreview::new();
 //! preview.set_content("# Hello, world!\n\nThis is a paragraph.");
@@ -55,7 +55,7 @@
 //! ### Markdown Rendering
 //!
 //! ```rust
-//! use ratatui_markdown::markdown::MarkdownRenderer;
+//! use daat_locus_md::markdown::MarkdownRenderer;
 //!
 //! let renderer = MarkdownRenderer::new(80);
 //! let blocks = renderer.parse("# Title\n\nParagraph with **bold** text.");
@@ -65,7 +65,7 @@
 //! ### Custom Rendering with Hooks
 //!
 //! ```rust
-//! use ratatui_markdown::markdown::{MarkdownRenderer, RenderHooks};
+//! use daat_locus_md::markdown::{MarkdownRenderer, RenderHooks};
 //! use ratatui::text::Line;
 //!
 //! struct MyHooks;
@@ -83,7 +83,7 @@
 //! ### Collapsible Trees
 //!
 //! ```rust
-//! use ratatui_markdown::tree::CollapsibleTree;
+//! use daat_locus_md::tree::CollapsibleTree;
 //!
 //! let mut tree = CollapsibleTree::from_json_str(
 //!     r#"{"key": "value", "nested": {"a": 1}}"#
@@ -96,7 +96,7 @@
 //! ### Scroll System
 //!
 //! ```rust
-//! use ratatui_markdown::scroll::HybridScrollView;
+//! use daat_locus_md::scroll::HybridScrollView;
 //!
 //! let mut scroll = HybridScrollView::new()
 //!     .with_cursor_indicator(true);
@@ -107,7 +107,7 @@
 //!
 //! ```rust
 //! use ratatui::style::Color;
-//! use ratatui_markdown::theme::{Generation, RichTextTheme};
+//! use daat_locus_md::theme::{Generation, RichTextTheme};
 //!
 //! struct MyTheme;
 //!

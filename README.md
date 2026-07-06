@@ -1,8 +1,8 @@
 <div align="center">
-  <img src="https://raw.githubusercontent.com/celestia-island/ratatui-markdown/dev/examples/logo.webp" alt="ratatui-markdown logo" width="200" />
+  <img src="https://raw.githubusercontent.com/celestia-island/daat-locus-md/dev/examples/logo.webp" alt="daat-locus-md logo" width="200" />
 </div>
 
-<div align="center"><h1>ratatui-markdown</h1></div>
+<div align="center"><h1>daat-locus-md</h1></div>
 <div align="center">
   <strong>Markdown rendering, Mermaid diagrams, syntax highlighting, collapsible trees, and rich scroll widgets for ratatui</strong>
 </div>
@@ -10,14 +10,14 @@
 <br />
 
 <div align="center">
-  <a href="https://github.com/celestia-island/ratatui-markdown/actions/workflows/ci.yml">
-    <img src="https://img.shields.io/github/actions/workflow/status/celestia-island/ratatui-markdown/ci.yml?branch=dev" alt="CI" />
+  <a href="https://github.com/celestia-island/daat-locus-md/actions/workflows/ci.yml">
+    <img src="https://img.shields.io/github/actions/workflow/status/celestia-island/daat-locus-md/ci.yml?branch=dev" alt="CI" />
   </a>
   <a href="LICENSE">
     <img src="https://img.shields.io/badge/License-MIT%20OR%20Apache--2.0-blue.svg" alt="License" />
   </a>
-  <a href="https://crates.io/crates/ratatui-markdown">
-    <img src="https://img.shields.io/crates/v/ratatui-markdown.svg" alt="Crates.io" />
+  <a href="https://crates.io/crates/daat-locus-md">
+    <img src="https://img.shields.io/crates/v/daat-locus-md.svg" alt="Crates.io" />
   </a>
 </div>
 
@@ -25,23 +25,23 @@
   <h3>
     <a href="#quick-start">Quick Start</a>
     <span> | </span>
-    <a href="https://github.com/celestia-island/ratatui-markdown/blob/dev/docs/guides/en/index.md">Documentation</a>
+    <a href="https://github.com/celestia-island/daat-locus-md/blob/dev/docs/guides/en/index.md">Documentation</a>
     <span> | </span>
-    <a href="https://docs.rs/ratatui-markdown">API Reference</a>
+    <a href="https://docs.rs/daat-locus-md">API Reference</a>
   </h3>
 </div>
 
 <div align="center">
   <p>
-    <a href="https://github.com/celestia-island/ratatui-markdown/blob/dev/README.md">English</a> |
-    <a href="https://github.com/celestia-island/ratatui-markdown/blob/dev/docs/guides/zhs/index.md">简体中文</a> |
-    <a href="https://github.com/celestia-island/ratatui-markdown/blob/dev/docs/guides/zht/index.md">繁體中文</a> |
-    <a href="https://github.com/celestia-island/ratatui-markdown/blob/dev/docs/guides/ja/index.md">日本語</a> |
-    <a href="https://github.com/celestia-island/ratatui-markdown/blob/dev/docs/guides/ko/index.md">한국어</a> |
-    <a href="https://github.com/celestia-island/ratatui-markdown/blob/dev/docs/guides/fr/index.md">Français</a> |
-    <a href="https://github.com/celestia-island/ratatui-markdown/blob/dev/docs/guides/es/index.md">Español</a> |
-    <a href="https://github.com/celestia-island/ratatui-markdown/blob/dev/docs/guides/ru/index.md">Русский</a> |
-    <a href="https://github.com/celestia-island/ratatui-markdown/blob/dev/docs/guides/ar/index.md">العربية</a>
+    <a href="https://github.com/celestia-island/daat-locus-md/blob/dev/README.md">English</a> |
+    <a href="https://github.com/celestia-island/daat-locus-md/blob/dev/docs/guides/zhs/index.md">简体中文</a> |
+    <a href="https://github.com/celestia-island/daat-locus-md/blob/dev/docs/guides/zht/index.md">繁體中文</a> |
+    <a href="https://github.com/celestia-island/daat-locus-md/blob/dev/docs/guides/ja/index.md">日本語</a> |
+    <a href="https://github.com/celestia-island/daat-locus-md/blob/dev/docs/guides/ko/index.md">한국어</a> |
+    <a href="https://github.com/celestia-island/daat-locus-md/blob/dev/docs/guides/fr/index.md">Français</a> |
+    <a href="https://github.com/celestia-island/daat-locus-md/blob/dev/docs/guides/es/index.md">Español</a> |
+    <a href="https://github.com/celestia-island/daat-locus-md/blob/dev/docs/guides/ru/index.md">Русский</a> |
+    <a href="https://github.com/celestia-island/daat-locus-md/blob/dev/docs/guides/ar/index.md">العربية</a>
   </p>
 </div>
 
@@ -74,14 +74,14 @@
 
 ```toml
 [dependencies]
-ratatui-markdown = "0.3"
+daat-locus-md = "0.3"
 ```
 
 For the full feature set (enabled by default):
 
 ```toml
 [dependencies]
-ratatui-markdown = { version = "0.3", features = ["preview"] }
+daat-locus-md = { version = "0.3", features = ["preview"] }
 ```
 
 Individual features can be enabled selectively:
@@ -120,14 +120,14 @@ cargo run --example tree_list
 
 ## Documentation
 
-- [Getting Started](https://github.com/celestia-island/ratatui-markdown/blob/dev/docs/guides/en/getting-started.md)
-- [Markdown Module](https://github.com/celestia-island/ratatui-markdown/blob/dev/docs/guides/en/markdown.md)
-- [Scroll System](https://github.com/celestia-island/ratatui-markdown/blob/dev/docs/guides/en/scroll.md)
-- [Tree View](https://github.com/celestia-island/ratatui-markdown/blob/dev/docs/guides/en/tree.md)
-- [Preview Widget](https://github.com/celestia-island/ratatui-markdown/blob/dev/docs/guides/en/preview.md)
-- [Theme Customization](https://github.com/celestia-island/ratatui-markdown/blob/dev/docs/guides/en/theme.md)
-- [Contributing](https://github.com/celestia-island/ratatui-markdown/blob/dev/docs/guides/en/contributing.md)
-- [API Reference](https://docs.rs/ratatui-markdown)
+- [Getting Started](https://github.com/celestia-island/daat-locus-md/blob/dev/docs/guides/en/getting-started.md)
+- [Markdown Module](https://github.com/celestia-island/daat-locus-md/blob/dev/docs/guides/en/markdown.md)
+- [Scroll System](https://github.com/celestia-island/daat-locus-md/blob/dev/docs/guides/en/scroll.md)
+- [Tree View](https://github.com/celestia-island/daat-locus-md/blob/dev/docs/guides/en/tree.md)
+- [Preview Widget](https://github.com/celestia-island/daat-locus-md/blob/dev/docs/guides/en/preview.md)
+- [Theme Customization](https://github.com/celestia-island/daat-locus-md/blob/dev/docs/guides/en/theme.md)
+- [Contributing](https://github.com/celestia-island/daat-locus-md/blob/dev/docs/guides/en/contributing.md)
+- [API Reference](https://docs.rs/daat-locus-md)
 
 ## License
 

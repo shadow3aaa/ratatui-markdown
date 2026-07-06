@@ -11,7 +11,7 @@ Add to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-ratatui-markdown = "0.1"
+daat-locus-md = "0.1"
 ```
 
 This enables all features by default (`markdown`, `scroll`, `tree`, `preview`, `mermaid`, `image`, `viewer`).
@@ -22,13 +22,13 @@ To reduce compile time and dependencies, enable only what you need:
 
 ```toml
 # Markdown rendering only
-ratatui-markdown = { version = "0.1", default-features = false, features = ["markdown"] }
+daat-locus-md = { version = "0.1", default-features = false, features = ["markdown"] }
 
 # Scroll system only
-ratatui-markdown = { version = "0.1", default-features = false, features = ["scroll"] }
+daat-locus-md = { version = "0.1", default-features = false, features = ["scroll"] }
 
 # Tree view (pulls in scroll, serde_json, and toml)
-ratatui-markdown = { version = "0.1", default-features = false, features = ["tree"] }
+daat-locus-md = { version = "0.1", default-features = false, features = ["tree"] }
 ```
 
 ## Basic Usage
@@ -36,8 +36,8 @@ ratatui-markdown = { version = "0.1", default-features = false, features = ["tre
 ### Render Markdown
 
 ```rust
-use ratatui_markdown::markdown::MarkdownRenderer;
-use ratatui_markdown::theme::RichTextTheme;
+use daat_locus_md::markdown::MarkdownRenderer;
+use daat_locus_md::theme::RichTextTheme;
 
 // Create a renderer with maximum content width
 let renderer = MarkdownRenderer::new(80);
@@ -52,7 +52,7 @@ let lines = renderer.render(&blocks, &my_theme);
 ### Browse a Tree
 
 ```rust
-use ratatui_markdown::tree::CollapsibleTree;
+use daat_locus_md::tree::CollapsibleTree;
 
 // Parse JSON into a collapsible tree
 let json_str = r#"{"name": "project", "deps": {"ratatui": "0.29", "serde": "1.0"}}"#;
@@ -73,8 +73,8 @@ tree.toggle("deps/serde");
 The `MarkdownPreview` widget combines everything into a single scrollable view:
 
 ```rust
-use ratatui_markdown::preview::MarkdownPreview;
-use ratatui_markdown::theme::RichTextTheme;
+use daat_locus_md::preview::MarkdownPreview;
+use daat_locus_md::theme::RichTextTheme;
 
 let mut preview = MarkdownPreview::new()
     .with_left_padding(true);
@@ -105,7 +105,7 @@ The library uses a trait to look up all colors:
 
 ```rust
 use ratatui::style::Color;
-use ratatui_markdown::theme::{Generation, RichTextTheme};
+use daat_locus_md::theme::{Generation, RichTextTheme};
 
 struct MyTheme;
 

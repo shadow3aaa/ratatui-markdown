@@ -1,4 +1,4 @@
-# ratatui-markdown Build System
+# daat-locus-md Build System
 #
 # Usage:
 #   just <recipe>        - Run specified recipe

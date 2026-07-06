@@ -22,7 +22,7 @@ use ratatui_image::{
     protocol::Protocol,
     Image, Resize,
 };
-use ratatui_markdown::markdown::{ImageResolver, MarkdownRenderer};
+use daat_locus_md::markdown::{ImageResolver, MarkdownRenderer};
 
 fn fix_protocol_override(picker: &mut Picker) {
     use ratatui_image::picker::Capability;
@@ -69,7 +69,7 @@ graphics protocol (kitty, iTerm2, sixels, or halfblocks).
 
 ## Logo (loaded from disk)
 
-![ratatui-markdown Logo](logo.webp)
+![daat-locus-md Logo](logo.webp)
 
 ## Demo Screenshot (loaded from disk)
 
@@ -248,7 +248,7 @@ struct AppState {
     theme: Theme,
     picker: Picker,
     resolver: FsImageResolver,
-    blocks: Vec<ratatui_markdown::markdown::MarkdownBlock>,
+    blocks: Vec<daat_locus_md::markdown::MarkdownBlock>,
     resolved_paths: Vec<String>,
     scaled_images: Vec<ScaledImage>,
     need_rerender: bool,
@@ -260,13 +260,13 @@ struct AppState {
 }
 
 impl AppState {
-    fn rebuild_output(&mut self) -> ratatui_markdown::markdown::image::MarkdownRenderOutput {
-        let resolved_images: Vec<ratatui_markdown::markdown::image::ResolvedImage> = self
+    fn rebuild_output(&mut self) -> daat_locus_md::markdown::image::MarkdownRenderOutput {
+        let resolved_images: Vec<daat_locus_md::markdown::image::ResolvedImage> = self
             .resolved_paths
             .iter()
             .zip(self.scaled_images.iter())
             .map(
-                |(path, si)| ratatui_markdown::markdown::image::ResolvedImage {
+                |(path, si)| daat_locus_md::markdown::image::ResolvedImage {
                     path: path.clone(),
                     image: si.scaled.clone(),
                 },

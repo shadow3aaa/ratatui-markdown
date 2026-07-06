@@ -14,14 +14,14 @@ use ratatui::{
     },
     Frame,
 };
-use ratatui_markdown::{
+use daat_locus_md::{
     constants::{HLINE, ROUNDED_BL, ROUNDED_TL, VLINE},
     theme::RichTextTheme,
     tree::{CollapsibleTree, EntryKind, KeyStyle, ValueType},
 };
 
 const JSON_DATA: &str = r#"{
-  "package": "ratatui-markdown",
+  "package": "daat-locus-md",
   "version": "0.2.2",
   "metadata": {
     "edition": "2021",
@@ -271,7 +271,7 @@ impl App {
 }
 
 fn render_tree_plain(
-    entries: &[ratatui_markdown::tree::FlatEntry],
+    entries: &[daat_locus_md::tree::FlatEntry],
     theme: &impl RichTextTheme,
     key_style: KeyStyle,
 ) -> Vec<Line<'static>> {
@@ -293,7 +293,7 @@ fn render_tree_plain(
                 EntryKind::Expanded { label, count_str } => Line::from(vec![
                     indent,
                     Span::styled(
-                        format!("{} ", ratatui_markdown::constants::TRIANGLE_DOWN),
+                        format!("{} ", daat_locus_md::constants::TRIANGLE_DOWN),
                         Style::default().fg(key_color),
                     ),
                     Span::styled(label.clone(), Style::default().fg(key_color)),

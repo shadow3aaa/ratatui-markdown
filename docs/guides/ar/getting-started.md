@@ -11,7 +11,7 @@
 
 ```toml
 [dependencies]
-ratatui-markdown = "0.1"
+daat-locus-md = "0.1"
 ```
 
 يفعّل هذا جميع الميزات افتراضيًا (`markdown`، `scroll`، `tree`، `preview`، `mermaid`، `image`، `viewer`).
@@ -22,13 +22,13 @@ ratatui-markdown = "0.1"
 
 ```toml
 # عرض Markdown فقط
-ratatui-markdown = { version = "0.1", default-features = false, features = ["markdown"] }
+daat-locus-md = { version = "0.1", default-features = false, features = ["markdown"] }
 
 # نظام التمرير فقط
-ratatui-markdown = { version = "0.1", default-features = false, features = ["scroll"] }
+daat-locus-md = { version = "0.1", default-features = false, features = ["scroll"] }
 
 # عرض الشجرة (يجلب scroll و serde_json و toml)
-ratatui-markdown = { version = "0.1", default-features = false, features = ["tree"] }
+daat-locus-md = { version = "0.1", default-features = false, features = ["tree"] }
 ```
 
 ## الاستخدام الأساسي
@@ -36,8 +36,8 @@ ratatui-markdown = { version = "0.1", default-features = false, features = ["tre
 ### عرض Markdown
 
 ```rust
-use ratatui_markdown::markdown::MarkdownRenderer;
-use ratatui_markdown::theme::RichTextTheme;
+use daat_locus_md::markdown::MarkdownRenderer;
+use daat_locus_md::theme::RichTextTheme;
 
 // أنشئ عارضًا مع أقصى عرض للمحتوى
 let renderer = MarkdownRenderer::new(80);
@@ -52,7 +52,7 @@ let lines = renderer.render(&blocks, &my_theme);
 ### تصفح شجرة
 
 ```rust
-use ratatui_markdown::tree::CollapsibleTree;
+use daat_locus_md::tree::CollapsibleTree;
 
 // حلل JSON إلى شجرة قابلة للطي
 let json_str = r#"{"name": "project", "deps": {"ratatui": "0.29", "serde": "1.0"}}"#;
@@ -73,8 +73,8 @@ tree.toggle("deps/serde");
 عنصر `MarkdownPreview` يدمج كل شيء في عرض واحد قابل للتمرير:
 
 ```rust
-use ratatui_markdown::preview::MarkdownPreview;
-use ratatui_markdown::theme::RichTextTheme;
+use daat_locus_md::preview::MarkdownPreview;
+use daat_locus_md::theme::RichTextTheme;
 
 let mut preview = MarkdownPreview::new()
     .with_left_padding(true);
@@ -105,7 +105,7 @@ fn draw(f: &mut ratatui::Frame, preview: &mut MarkdownPreview, theme: &impl Rich
 
 ```rust
 use ratatui::style::Color;
-use ratatui_markdown::theme::{Generation, RichTextTheme};
+use daat_locus_md::theme::{Generation, RichTextTheme};
 
 struct MyTheme;
 

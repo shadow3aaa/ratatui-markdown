@@ -12,7 +12,7 @@ use ratatui::{
     },
     Frame, Terminal,
 };
-use ratatui_markdown::theme::{CodeColors, ThemeConfig};
+use daat_locus_md::theme::{CodeColors, ThemeConfig};
 
 pub struct Theme;
 
@@ -25,7 +25,7 @@ impl std::ops::Deref for Theme {
 }
 
 static THEME: ThemeConfig = ThemeConfig {
-    gen: ratatui_markdown::theme::Generation(1),
+    gen: daat_locus_md::theme::Generation(1),
     text_color: Color::White,
     muted_text_color: Color::DarkGray,
     primary_color: Color::Cyan,
@@ -43,8 +43,8 @@ static THEME: ThemeConfig = ThemeConfig {
     code_colors: CodeColors::DEFAULT,
 };
 
-impl ratatui_markdown::theme::RichTextTheme for Theme {
-    fn generation(&self) -> ratatui_markdown::theme::Generation {
+impl daat_locus_md::theme::RichTextTheme for Theme {
+    fn generation(&self) -> daat_locus_md::theme::Generation {
         THEME.gen
     }
     fn get_text_color(&self) -> Color {

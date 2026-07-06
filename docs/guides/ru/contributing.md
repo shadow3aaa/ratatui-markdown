@@ -3,8 +3,8 @@
 ## Настройка Окружения Разработки
 
 ```bash
-git clone https://github.com/celestia-island/ratatui-markdown.git
-cd ratatui-markdown
+git clone https://github.com/celestia-island/daat-locus-md.git
+cd daat-locus-md
 cargo build
 ```
 

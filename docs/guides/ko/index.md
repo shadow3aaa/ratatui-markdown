@@ -1,8 +1,8 @@
 <div align="center">
-  <img src="../../../examples/logo.webp" alt="ratatui-markdown logo" width="200" />
+  <img src="../../../examples/logo.webp" alt="daat-locus-md logo" width="200" />
 </div>
 
-# ratatui-markdown
+# daat-locus-md
 
 > ratatui 를 위한 Markdown 렌더링, Mermaid 다이어그램, 구문 강조, 접이식 JSON/TOML 트리, 그리고 풍부한 스크롤 위젯을 제공하는 Rust 라이브러리입니다.
 >
@@ -24,9 +24,9 @@
   </p>
 </div>
 
-## ratatui-markdown 이란?
+## daat-locus-md 이란?
 
-ratatui-markdown 은 [ratatui](https://github.com/ratatui/ratatui) 위에 구축된 기능이 풍부한 터미널 UI 렌더링 라이브러리입니다. 여러 기능 모듈을 제공하며, 독립적으로 사용하거나 `MarkdownPreview` / `MarkdownViewer` 위젯으로 결합할 수 있습니다.
+daat-locus-md 은 [ratatui](https://github.com/ratatui/ratatui) 위에 구축된 기능이 풍부한 터미널 UI 렌더링 라이브러리입니다. 여러 기능 모듈을 제공하며, 독립적으로 사용하거나 `MarkdownPreview` / `MarkdownViewer` 위젯으로 결합할 수 있습니다.
 
 ## 핵심 모듈
 
@@ -94,7 +94,7 @@ tree-sitter 기반 코드 블록 구문 강조:
 
 ```toml
 [dependencies]
-ratatui-markdown = "0.3"
+daat-locus-md = "0.3"
 ```
 
 ### 예제
@@ -122,7 +122,7 @@ cargo run --example tree_list
 
 ```toml
 [dependencies]
-ratatui-markdown = { version = "0.3", default-features = false, features = ["markdown"] }
+daat-locus-md = { version = "0.3", default-features = false, features = ["markdown"] }
 ```
 
 | 기능                  | 의존성                             | 설명                                   | 기본값 |

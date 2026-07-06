@@ -2,9 +2,9 @@
 edition = "2021"
 name = "daat-locus-md"
 version = "0.3.6"
-description = "Fork of ratatui-markdown v0.3.6 with ratatui 0.30 support"
+description = "Fork of daat-locus-md v0.3.6 with ratatui 0.30 support"
 license = "MIT OR Apache-2.0"
-repository = "https://github.com/shadow3aaa/ratatui-markdown"
+repository = "https://github.com/shadow3aaa/daat-locus-md"
 
 [features]
 default = []

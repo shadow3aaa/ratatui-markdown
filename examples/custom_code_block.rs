@@ -8,7 +8,7 @@ use ratatui::{
     style::{Color, Modifier, Style},
     text::{Line, Span},
 };
-use ratatui_markdown::markdown::{MarkdownRenderer, RenderHooks};
+use daat_locus_md::markdown::{MarkdownRenderer, RenderHooks};
 
 struct TimelineCodeHooks;
 
