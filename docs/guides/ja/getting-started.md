@@ -11,7 +11,7 @@
 
 ```toml
 [dependencies]
-daat-locus-md = "0.1"
+ratatui-markdown = "0.1"
 ```
 
 これにより、デフォルトですべての機能（`markdown`、`scroll`、`tree`、`preview`、`mermaid`、`image`、`viewer`）が有効になります。
@@ -22,13 +22,13 @@ daat-locus-md = "0.1"
 
 ```toml
 # Markdown レンダリングのみ
-daat-locus-md = { version = "0.1", default-features = false, features = ["markdown"] }
+ratatui-markdown = { version = "0.1", default-features = false, features = ["markdown"] }
 
 # スクロールシステムのみ
-daat-locus-md = { version = "0.1", default-features = false, features = ["scroll"] }
+ratatui-markdown = { version = "0.1", default-features = false, features = ["scroll"] }
 
 # ツリービュー (scroll, serde_json, toml を含む)
-daat-locus-md = { version = "0.1", default-features = false, features = ["tree"] }
+ratatui-markdown = { version = "0.1", default-features = false, features = ["tree"] }
 ```
 
 ## 基本的な使い方
@@ -36,8 +36,8 @@ daat-locus-md = { version = "0.1", default-features = false, features = ["tree"]
 ### Markdown のレンダリング
 
 ```rust
-use daat_locus_md::markdown::MarkdownRenderer;
-use daat_locus_md::theme::RichTextTheme;
+use ratatui_markdown::markdown::MarkdownRenderer;
+use ratatui_markdown::theme::RichTextTheme;
 
 // 最大コンテンツ幅を指定してレンダラーを作成
 let renderer = MarkdownRenderer::new(80);
@@ -52,7 +52,7 @@ let lines = renderer.render(&blocks, &my_theme);
 ### ツリーの閲覧
 
 ```rust
-use daat_locus_md::tree::CollapsibleTree;
+use ratatui_markdown::tree::CollapsibleTree;
 
 // JSON を折りたたみ可能なツリーに解析
 let json_str = r#"{"name": "project", "deps": {"ratatui": "0.29", "serde": "1.0"}}"#;
@@ -73,8 +73,8 @@ tree.toggle("deps/serde");
 `MarkdownPreview` ウィジェットは、すべてを単一のスクロール可能なビューに統合します：
 
 ```rust
-use daat_locus_md::preview::MarkdownPreview;
-use daat_locus_md::theme::RichTextTheme;
+use ratatui_markdown::preview::MarkdownPreview;
+use ratatui_markdown::theme::RichTextTheme;
 
 let mut preview = MarkdownPreview::new()
     .with_left_padding(true);
@@ -105,7 +105,7 @@ fn draw(f: &mut ratatui::Frame, preview: &mut MarkdownPreview, theme: &impl Rich
 
 ```rust
 use ratatui::style::Color;
-use daat_locus_md::theme::{Generation, RichTextTheme};
+use ratatui_markdown::theme::{Generation, RichTextTheme};
 
 struct MyTheme;
 

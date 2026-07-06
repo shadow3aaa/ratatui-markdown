@@ -3,8 +3,8 @@
 ## 開発環境のセットアップ
 
 ```bash
-git clone https://github.com/celestia-island/daat-locus-md.git
-cd daat-locus-md
+git clone https://github.com/celestia-island/ratatui-markdown.git
+cd ratatui-markdown
 cargo build
 ```
 

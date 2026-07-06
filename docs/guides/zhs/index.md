@@ -1,8 +1,8 @@
 <div align="center">
-  <img src="../../../examples/logo.webp" alt="daat-locus-md logo" width="200" />
+  <img src="../../../examples/logo.webp" alt="ratatui-markdown logo" width="200" />
 </div>
 
-# daat-locus-md
+# ratatui-markdown
 
 > 为 ratatui 提供 Markdown 渲染、Mermaid 图表、语法高亮、可折叠 JSON/TOML 树以及丰富滚动组件的 Rust 库。
 >
@@ -24,9 +24,9 @@
   </p>
 </div>
 
-## 什么是 daat-locus-md？
+## 什么是 ratatui-markdown？
 
-daat-locus-md 是一个功能丰富的终端用户界面渲染库，基于 [ratatui](https://github.com/ratatui/ratatui) 构建。它提供多个功能模块，可以独立使用，也可以通过 `MarkdownPreview` / `MarkdownViewer` 组件组合使用。
+ratatui-markdown 是一个功能丰富的终端用户界面渲染库，基于 [ratatui](https://github.com/ratatui/ratatui) 构建。它提供多个功能模块，可以独立使用，也可以通过 `MarkdownPreview` / `MarkdownViewer` 组件组合使用。
 
 ## 核心模块
 
@@ -94,7 +94,7 @@ daat-locus-md 是一个功能丰富的终端用户界面渲染库，基于 [rata
 
 ```toml
 [dependencies]
-daat-locus-md = "0.3"
+ratatui-markdown = "0.3"
 ```
 
 ### 示例
@@ -122,7 +122,7 @@ cargo run --example tree_list
 
 ```toml
 [dependencies]
-daat-locus-md = { version = "0.3", default-features = false, features = ["markdown"] }
+ratatui-markdown = { version = "0.3", default-features = false, features = ["markdown"] }
 ```
 
 | 功能                | 依赖                               | 描述                               | 默认 |

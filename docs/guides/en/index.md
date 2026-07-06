@@ -1,8 +1,8 @@
 <div align="center">
-  <img src="../../../examples/logo.webp" alt="daat-locus-md logo" width="200" />
+  <img src="../../../examples/logo.webp" alt="ratatui-markdown logo" width="200" />
 </div>
 
-# daat-locus-md
+# ratatui-markdown
 
 > A Rust library providing markdown rendering, Mermaid diagrams, syntax highlighting, collapsible JSON/TOML trees, and rich scroll widgets for ratatui.
 >
@@ -24,9 +24,9 @@
   </p>
 </div>
 
-## What is daat-locus-md?
+## What is ratatui-markdown?
 
-daat-locus-md is a feature-rich rendering library for terminal user interfaces built with [ratatui](https://github.com/ratatui/ratatui). It provides multiple functional modules that can be used independently or combined through the `MarkdownPreview` / `MarkdownViewer` widgets.
+ratatui-markdown is a feature-rich rendering library for terminal user interfaces built with [ratatui](https://github.com/ratatui/ratatui). It provides multiple functional modules that can be used independently or combined through the `MarkdownPreview` / `MarkdownViewer` widgets.
 
 ## Core Modules
 
@@ -94,7 +94,7 @@ The high-level widget that ties everything together:
 
 ```toml
 [dependencies]
-daat-locus-md = "0.3"
+ratatui-markdown = "0.3"
 ```
 
 ### Examples
@@ -122,7 +122,7 @@ All features are enabled by default. Disable default features and enable only wh
 
 ```toml
 [dependencies]
-daat-locus-md = { version = "0.3", default-features = false, features = ["markdown"] }
+ratatui-markdown = { version = "0.3", default-features = false, features = ["markdown"] }
 ```
 
 | Feature              | Depends on                           | Description                                     | Default |

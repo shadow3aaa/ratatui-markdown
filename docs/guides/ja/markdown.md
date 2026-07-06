@@ -91,7 +91,7 @@ pub fn parse_inline_formatting(text: &str, theme: &impl RichTextTheme) -> Vec<Sp
 ## 例
 
 ```rust
-use daat_locus_md::markdown::MarkdownRenderer;
+use ratatui_markdown::markdown::MarkdownRenderer;
 
 let md = r#"
 # タイトル

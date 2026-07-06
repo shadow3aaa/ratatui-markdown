@@ -108,7 +108,7 @@ Here's how each theme color is used in practice:
 
 ```rust
 use ratatui::style::Color;
-use daat_locus_md::theme::{Generation, RichTextTheme};
+use ratatui_markdown::theme::{Generation, RichTextTheme};
 
 struct CatppuccinMocha;
 

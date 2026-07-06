@@ -91,7 +91,7 @@ Cette fonction autonome est également réexportée pour une utilisation en deho
 ## Exemple
 
 ```rust
-use daat_locus_md::markdown::MarkdownRenderer;
+use ratatui_markdown::markdown::MarkdownRenderer;
 
 let md = r#"
 # Titre

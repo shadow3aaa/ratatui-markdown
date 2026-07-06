@@ -91,7 +91,7 @@ This standalone function is also re-exported for use outside the `MarkdownRender
 ## Example
 
 ```rust
-use daat_locus_md::markdown::MarkdownRenderer;
+use ratatui_markdown::markdown::MarkdownRenderer;
 
 let md = r#"
 # Title

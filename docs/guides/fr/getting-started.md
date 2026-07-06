@@ -11,7 +11,7 @@ Ajoutez à votre `Cargo.toml` :
 
 ```toml
 [dependencies]
-daat-locus-md = "0.1"
+ratatui-markdown = "0.1"
 ```
 
 Cela active toutes les fonctionnalités par défaut (`markdown`, `scroll`, `tree`, `preview`, `mermaid`, `image`, `viewer`).
@@ -22,13 +22,13 @@ Pour réduire le temps de compilation et les dépendances, activez uniquement ce
 
 ```toml
 # Rendu Markdown uniquement
-daat-locus-md = { version = "0.1", default-features = false, features = ["markdown"] }
+ratatui-markdown = { version = "0.1", default-features = false, features = ["markdown"] }
 
 # Système de défilement uniquement
-daat-locus-md = { version = "0.1", default-features = false, features = ["scroll"] }
+ratatui-markdown = { version = "0.1", default-features = false, features = ["scroll"] }
 
 # Vue arborescente (inclut scroll, serde_json et toml)
-daat-locus-md = { version = "0.1", default-features = false, features = ["tree"] }
+ratatui-markdown = { version = "0.1", default-features = false, features = ["tree"] }
 ```
 
 ## Utilisation de Base
@@ -36,8 +36,8 @@ daat-locus-md = { version = "0.1", default-features = false, features = ["tree"]
 ### Rendu Markdown
 
 ```rust
-use daat_locus_md::markdown::MarkdownRenderer;
-use daat_locus_md::theme::RichTextTheme;
+use ratatui_markdown::markdown::MarkdownRenderer;
+use ratatui_markdown::theme::RichTextTheme;
 
 // Créer un moteur de rendu avec une largeur de contenu maximale
 let renderer = MarkdownRenderer::new(80);
@@ -52,7 +52,7 @@ let lines = renderer.render(&blocks, &my_theme);
 ### Parcourir un Arbre
 
 ```rust
-use daat_locus_md::tree::CollapsibleTree;
+use ratatui_markdown::tree::CollapsibleTree;
 
 // Analyser du JSON en un arbre rétractable
 let json_str = r#"{"nom": "projet", "deps": {"ratatui": "0.29", "serde": "1.0"}}"#;
@@ -73,8 +73,8 @@ tree.toggle("deps/serde");
 Le widget `MarkdownPreview` combine tout en une seule vue défilable :
 
 ```rust
-use daat_locus_md::preview::MarkdownPreview;
-use daat_locus_md::theme::RichTextTheme;
+use ratatui_markdown::preview::MarkdownPreview;
+use ratatui_markdown::theme::RichTextTheme;
 
 let mut preview = MarkdownPreview::new()
     .with_left_padding(true);
@@ -105,7 +105,7 @@ La bibliothèque utilise un trait pour obtenir toutes les couleurs :
 
 ```rust
 use ratatui::style::Color;
-use daat_locus_md::theme::{Generation, RichTextTheme};
+use ratatui_markdown::theme::{Generation, RichTextTheme};
 
 struct MonTheme;
 

@@ -130,8 +130,8 @@ if let Some("confirm") = preview.selected_action_id() {
 ## 範例
 
 ```rust
-use daat_locus_md::preview::{MarkdownPreview, ActionItem};
-use daat_locus_md::tree::CollapsibleTree;
+use ratatui_markdown::preview::{MarkdownPreview, ActionItem};
+use ratatui_markdown::tree::CollapsibleTree;
 
 let mut preview = MarkdownPreview::new()
     .with_strip_frontmatter(true)

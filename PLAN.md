@@ -1,4 +1,4 @@
-# daat-locus-md Roadmap
+# ratatui-markdown Roadmap
 
 All previously planned features have been implemented. This document tracks new
 requirements that emerged during TUI integration work and their status.

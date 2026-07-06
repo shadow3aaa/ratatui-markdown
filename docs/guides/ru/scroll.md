@@ -141,7 +141,7 @@ pub fn render_scrollable(
 ## Пример
 
 ```rust
-use daat_locus_md::scroll::{HybridScrollView, FocusableItemRange, FocusableRegion};
+use ratatui_markdown::scroll::{HybridScrollView, FocusableItemRange, FocusableRegion};
 
 let mut scroll = HybridScrollView::new()
     .with_cursor_indicator(true);

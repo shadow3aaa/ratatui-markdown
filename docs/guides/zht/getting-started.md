@@ -11,7 +11,7 @@
 
 ```toml
 [dependencies]
-daat-locus-md = "0.1"
+ratatui-markdown = "0.1"
 ```
 
 預設會啟用所有功能（`markdown`、`scroll`、`tree`、`preview`、`mermaid`、`image`、`viewer`）。
@@ -22,13 +22,13 @@ daat-locus-md = "0.1"
 
 ```toml
 # 僅 Markdown 渲染
-daat-locus-md = { version = "0.1", default-features = false, features = ["markdown"] }
+ratatui-markdown = { version = "0.1", default-features = false, features = ["markdown"] }
 
 # 僅捲動系統
-daat-locus-md = { version = "0.1", default-features = false, features = ["scroll"] }
+ratatui-markdown = { version = "0.1", default-features = false, features = ["scroll"] }
 
 # 樹檢視（會引入 scroll、serde_json 和 toml）
-daat-locus-md = { version = "0.1", default-features = false, features = ["tree"] }
+ratatui-markdown = { version = "0.1", default-features = false, features = ["tree"] }
 ```
 
 ## 基本用法
@@ -36,8 +36,8 @@ daat-locus-md = { version = "0.1", default-features = false, features = ["tree"]
 ### 渲染 Markdown
 
 ```rust
-use daat_locus_md::markdown::MarkdownRenderer;
-use daat_locus_md::theme::RichTextTheme;
+use ratatui_markdown::markdown::MarkdownRenderer;
+use ratatui_markdown::theme::RichTextTheme;
 
 // 使用最大內容寬度建立渲染器
 let renderer = MarkdownRenderer::new(80);
@@ -52,7 +52,7 @@ let lines = renderer.render(&blocks, &my_theme);
 ### 瀏覽樹
 
 ```rust
-use daat_locus_md::tree::CollapsibleTree;
+use ratatui_markdown::tree::CollapsibleTree;
 
 // 將 JSON 解析為可折疊樹
 let json_str = r#"{"name": "project", "deps": {"ratatui": "0.29", "serde": "1.0"}}"#;
@@ -73,8 +73,8 @@ tree.toggle("deps/serde");
 `MarkdownPreview` 組件將所有功能整合到單一可捲動檢視中：
 
 ```rust
-use daat_locus_md::preview::MarkdownPreview;
-use daat_locus_md::theme::RichTextTheme;
+use ratatui_markdown::preview::MarkdownPreview;
+use ratatui_markdown::theme::RichTextTheme;
 
 let mut preview = MarkdownPreview::new()
     .with_left_padding(true);
@@ -105,7 +105,7 @@ fn draw(f: &mut ratatui::Frame, preview: &mut MarkdownPreview, theme: &impl Rich
 
 ```rust
 use ratatui::style::Color;
-use daat_locus_md::theme::{Generation, RichTextTheme};
+use ratatui_markdown::theme::{Generation, RichTextTheme};
 
 struct MyTheme;
 
