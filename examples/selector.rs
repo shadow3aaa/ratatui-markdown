@@ -4,6 +4,11 @@ mod common;
 use std::collections::HashSet;
 
 use common::{restore_terminal, setup_terminal, Theme};
+use daat_locus_md::{
+    constants::{HLINE, ROUNDED_BL, ROUNDED_TL, VLINE},
+    theme::RichTextTheme,
+    tree::{CollapsibleTree, EntryKind, KeyStyle, ValueType},
+};
 use ratatui::{
     crossterm::event::{self, Event, KeyCode, KeyEventKind, MouseEventKind},
     layout::Rect,
@@ -13,11 +18,6 @@ use ratatui::{
         Block, Borders, Padding, Paragraph, Scrollbar, ScrollbarOrientation, ScrollbarState,
     },
     Frame,
-};
-use daat_locus_md::{
-    constants::{HLINE, ROUNDED_BL, ROUNDED_TL, VLINE},
-    theme::RichTextTheme,
-    tree::{CollapsibleTree, EntryKind, KeyStyle, ValueType},
 };
 
 const JSON_DATA: &str = r#"{

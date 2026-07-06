@@ -1,7 +1,7 @@
+use daat_locus_md::highlight::{pest_pairs_to_segments, CodeHighlighter, StyleSegment};
 use pest::Parser;
 use pest_derive::Parser;
 use ratatui::style::{Color, Modifier, Style};
-use daat_locus_md::highlight::{pest_pairs_to_segments, CodeHighlighter, StyleSegment};
 
 // pest_derive has two grammar modes:
 //

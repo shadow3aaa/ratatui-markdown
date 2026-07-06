@@ -2,6 +2,10 @@
 mod common;
 
 use common::{lorem, Theme};
+use daat_locus_md::{
+    markdown::{ImageResolver, MarkdownRenderer, RenderHooks},
+    theme::RichTextTheme,
+};
 use ratatui::{
     backend::CrosstermBackend,
     crossterm::{
@@ -20,10 +24,6 @@ use ratatui_image::{
     picker::{Picker, ProtocolType},
     protocol::Protocol,
     Image, Resize,
-};
-use daat_locus_md::{
-    markdown::{ImageResolver, MarkdownRenderer, RenderHooks},
-    theme::RichTextTheme,
 };
 
 fn fix_protocol_override(picker: &mut Picker) {

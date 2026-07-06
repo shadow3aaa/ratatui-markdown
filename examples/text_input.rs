@@ -4,6 +4,9 @@ mod common;
 use std::{cell::Cell, rc::Rc};
 
 use common::{restore_terminal, setup_terminal, Theme};
+use daat_locus_md::text_input::{
+    CursorBlinkController, CursorPosition, CursorShape, CursorStyle, InputMode, TextInput,
+};
 use ratatui::{
     crossterm::event::{self, Event, KeyCode, KeyEventKind},
     layout::{Constraint, Layout},
@@ -11,9 +14,6 @@ use ratatui::{
     text::{Line, Span},
     widgets::{Block, Borders, Padding, Paragraph},
     Frame, Terminal,
-};
-use daat_locus_md::text_input::{
-    CursorBlinkController, CursorPosition, CursorShape, CursorStyle, InputMode, TextInput,
 };
 
 const INITIAL_TEXT: &str = "\

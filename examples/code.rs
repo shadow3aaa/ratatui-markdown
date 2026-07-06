@@ -6,12 +6,12 @@ mod mcfunction;
 use std::sync::Arc;
 
 use common::{draw_frame, poll_and_handle, restore_terminal, setup_terminal, AppState, Theme};
-use mcfunction::McfunctionHighlighter;
-use ratatui::style::{Color, Modifier, Style};
 use daat_locus_md::{
     highlight::{CodeHighlighter, HighlightHooks, StyleSegment, TreeSitterHighlighter},
     markdown::{MarkdownRenderer, RenderHooks},
 };
+use mcfunction::McfunctionHighlighter;
+use ratatui::style::{Color, Modifier, Style};
 
 struct BrainfuckHighlighter;
 

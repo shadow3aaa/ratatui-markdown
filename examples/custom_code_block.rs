@@ -4,11 +4,11 @@ mod common;
 use common::{
     draw_frame, lorem, poll_and_handle, restore_terminal, setup_terminal, AppState, Theme,
 };
+use daat_locus_md::markdown::{MarkdownRenderer, RenderHooks};
 use ratatui::{
     style::{Color, Modifier, Style},
     text::{Line, Span},
 };
-use daat_locus_md::markdown::{MarkdownRenderer, RenderHooks};
 
 struct TimelineCodeHooks;
 

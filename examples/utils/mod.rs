@@ -1,3 +1,4 @@
+use daat_locus_md::theme::{CodeColors, ThemeConfig};
 use ratatui::{
     backend::CrosstermBackend,
     crossterm::{
@@ -12,7 +13,6 @@ use ratatui::{
     },
     Frame, Terminal,
 };
-use daat_locus_md::theme::{CodeColors, ThemeConfig};
 
 pub struct Theme;
 

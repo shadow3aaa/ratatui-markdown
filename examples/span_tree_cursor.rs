@@ -2,6 +2,7 @@
 mod common;
 
 use common::{restore_terminal, setup_terminal, Theme};
+use daat_locus_md::scroll::{CursorLineMode, SpanTree, SpanTreeEntry};
 use ratatui::{
     crossterm::event::{self, Event, KeyCode, KeyEventKind},
     layout::Rect,
@@ -10,7 +11,6 @@ use ratatui::{
     widgets::{Block, Borders, Padding, Paragraph},
     Frame,
 };
-use daat_locus_md::scroll::{CursorLineMode, SpanTree, SpanTreeEntry};
 
 struct App {
     trees: [SpanTree; 2],

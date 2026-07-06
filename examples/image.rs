@@ -2,6 +2,7 @@
 mod common;
 
 use common::{lorem, Theme};
+use daat_locus_md::markdown::{ImageResolver, MarkdownRenderer};
 use ratatui::{
     backend::CrosstermBackend,
     crossterm::{
@@ -22,7 +23,6 @@ use ratatui_image::{
     protocol::Protocol,
     Image, Resize,
 };
-use daat_locus_md::markdown::{ImageResolver, MarkdownRenderer};
 
 fn fix_protocol_override(picker: &mut Picker) {
     use ratatui_image::picker::Capability;
@@ -265,12 +265,10 @@ impl AppState {
             .resolved_paths
             .iter()
             .zip(self.scaled_images.iter())
-            .map(
-                |(path, si)| daat_locus_md::markdown::image::ResolvedImage {
-                    path: path.clone(),
-                    image: si.scaled.clone(),
-                },
-            )
+            .map(|(path, si)| daat_locus_md::markdown::image::ResolvedImage {
+                path: path.clone(),
+                image: si.scaled.clone(),
+            })
             .collect();
         self.renderer.render_full(
             &self.blocks,

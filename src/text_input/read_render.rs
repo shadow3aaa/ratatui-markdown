@@ -1,6 +1,5 @@
-use ratatui::{layout::Rect, text::Line, Frame};
 use crate::theme::RichTextTheme;
-
+use ratatui::{layout::Rect, text::Line, Frame};
 
 #[cfg(feature = "markdown")]
 use crate::markdown::MarkdownRenderer;
