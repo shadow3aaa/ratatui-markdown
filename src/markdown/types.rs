@@ -11,6 +11,7 @@ pub enum MarkdownBlock {
         footer_override: Option<String>,
         prefix_override: Option<String>,
     },
+    InlineCode(String),
     ListItem(String, u8),
     TaskItem {
         text: String,
@@ -83,6 +84,7 @@ impl MarkdownBlock {
             Self::Heading1(_)
             | Self::Heading2(_)
             | Self::Heading3(_)
+            | Self::InlineCode(_)
             | Self::HorizontalRule
             | Self::BlankLine => 1,
             Self::Paragraph(lines) => lines.len().max(1),

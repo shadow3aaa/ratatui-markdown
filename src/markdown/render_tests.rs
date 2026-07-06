@@ -1545,12 +1545,12 @@ mod mermaid_render_tests {
     }
 
     #[test]
-    fn mermaid_invalid_syntax_falls_back_to_code_block() {
+    fn mermaid_invalid_syntax_skipped() {
         let md = "```mermaid\nnot a valid mermaid diagram\n```";
         let lines = render_markdown(md, 80);
         assert!(
-            !lines.is_empty(),
-            "invalid mermaid should fall back to code block rendering"
+            lines.is_empty(),
+            "invalid mermaid should be skipped gracefully"
         );
     }
 

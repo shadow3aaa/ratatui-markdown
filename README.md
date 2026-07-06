@@ -13,7 +13,10 @@
   <a href="https://github.com/celestia-island/ratatui-markdown/actions/workflows/ci.yml">
     <img src="https://img.shields.io/github/actions/workflow/status/celestia-island/ratatui-markdown/ci.yml?branch=dev" alt="CI" />
   </a>
-  [[![License: SySL](https://img.shields.io/badge/license-SySL%201.0-blue)](./LICENSE.txt)](./LICENSE.txt)<a href="https://crates.io/crates/ratatui-markdown">
+  <a href="LICENSE">
+    <img src="https://img.shields.io/badge/License-MIT%20OR%20Apache--2.0-blue.svg" alt="License" />
+  </a>
+  <a href="https://crates.io/crates/ratatui-markdown">
     <img src="https://img.shields.io/crates/v/ratatui-markdown.svg" alt="Crates.io" />
   </a>
 </div>
@@ -128,4 +131,4 @@ cargo run --example tree_list
 
 ## License
 
-Licensed under the [Synthetic Source License (SySL), Version 1.0](./LICENSE.txt).
+Dual-licensed under MIT OR Apache-2.0.

@@ -4,14 +4,6 @@ use unicode_width::UnicodeWidthChar;
 use super::{inline::parse_inline_formatting, types::TextToken, MarkdownRenderer};
 use crate::theme::RichTextTheme;
 
-pub(crate) fn display_width(c: char) -> usize {
-    UnicodeWidthChar::width(c).unwrap_or(0)
-}
-
-pub(crate) fn string_width(s: &str) -> usize {
-    s.chars().map(display_width).sum()
-}
-
 impl MarkdownRenderer {
     pub fn wrap_text_with_inline_formatting(
         &self,
@@ -52,7 +44,7 @@ impl MarkdownRenderer {
                         pending_space = true;
                     }
                     TextToken::Word(word) => {
-                        let word_w = string_width(&word);
+                        let word_w = Self::string_width(&word);
                         let space_w: usize = if pending_space && current_width > 0 {
                             1
                         } else {
@@ -83,7 +75,7 @@ impl MarkdownRenderer {
                             let mut buf = String::new();
                             let mut buf_w = 0usize;
                             for ch in word.chars() {
-                                let cw = display_width(ch);
+                                let cw = Self::display_width(ch);
                                 if current_width + buf_w + cw > self.max_width
                                     && (current_width > 0 || buf_w > 0)
                                 {
@@ -136,7 +128,7 @@ impl MarkdownRenderer {
         for token in tokens {
             match token {
                 TextToken::Newline => {
-                    lines.push(Self::trim_line_end(&current_line).to_string());
+                    lines.push(Self::trim_line_end(&current_line));
                     current_line.clear();
                     current_width = 0;
                     pending_space = false;
@@ -145,7 +137,7 @@ impl MarkdownRenderer {
                     pending_space = true;
                 }
                 TextToken::Word(word) => {
-                    let word_width = string_width(&word);
+                    let word_width = Self::string_width(&word);
                     let space_width = if pending_space { 1 } else { 0 };
                     let total_width = word_width + space_width;
 
@@ -158,7 +150,7 @@ impl MarkdownRenderer {
                     };
 
                     if needs_wrap && !current_line.is_empty() {
-                        lines.push(Self::trim_line_end(&current_line).to_string());
+                        lines.push(Self::trim_line_end(&current_line));
                         current_line.clear();
                         current_width = 0;
                         pending_space = false;
@@ -172,10 +164,10 @@ impl MarkdownRenderer {
 
                     if word_width > self.max_width {
                         for ch in word.chars() {
-                            let ch_width = display_width(ch);
+                            let ch_width = Self::display_width(ch);
                             if current_width + ch_width > self.max_width && !current_line.is_empty()
                             {
-                                lines.push(Self::trim_line_end(&current_line).to_string());
+                                lines.push(Self::trim_line_end(&current_line));
                                 current_line.clear();
                                 current_width = 0;
                             }
@@ -191,7 +183,7 @@ impl MarkdownRenderer {
         }
 
         if !current_line.is_empty() {
-            lines.push(Self::trim_line_end(&current_line).to_string());
+            lines.push(Self::trim_line_end(&current_line));
         }
 
         if lines.is_empty() {
@@ -202,6 +194,7 @@ impl MarkdownRenderer {
     }
 
     pub(crate) fn tokenize(text: &str) -> Vec<TextToken> {
+        let text = text.replace('\t', "    ");
         let mut tokens = Vec::new();
         let mut current_word = String::new();
 
@@ -212,15 +205,6 @@ impl MarkdownRenderer {
                     current_word = String::new();
                 }
                 tokens.push(TextToken::Newline);
-                continue;
-            }
-
-            if c == '\t' {
-                if !current_word.is_empty() {
-                    tokens.push(TextToken::Word(current_word));
-                    current_word = String::new();
-                }
-                tokens.push(TextToken::Word("    ".to_string()));
                 continue;
             }
 
@@ -253,33 +237,26 @@ impl MarkdownRenderer {
         tokens
     }
 
-    fn trim_line_end(line: &str) -> &str {
-        line.trim_end_matches(char::is_whitespace)
+    pub(crate) fn display_width(c: char) -> usize {
+        UnicodeWidthChar::width(c).unwrap_or(0)
+    }
+
+    pub(crate) fn string_width(s: &str) -> usize {
+        s.chars().map(Self::display_width).sum()
+    }
+
+    fn trim_line_end(line: &str) -> String {
+        line.trim_end_matches(char::is_whitespace).to_string()
     }
 
     fn is_cjk(c: char) -> bool {
         let cp = c as u32;
-        (0x1100..=0x11FF).contains(&cp)        // Hangul Jamo
-            || (0x2E80..=0x2FDF).contains(&cp) // CJK Radicals Supplement, Kangxi Radicals
-            || (0x2FF0..=0x2FFF).contains(&cp) // Ideographic Description Characters
-            || (0x3000..=0x303F).contains(&cp) // CJK Symbols and Punctuation
-            || (0x3040..=0x309F).contains(&cp) // Hiragana
-            || (0x30A0..=0x30FF).contains(&cp) // Katakana
-            || (0x3100..=0x31BF).contains(&cp) // Bopomofo, Bopomofo Extended, CJK Strokes
-            || (0x31C0..=0x31EF).contains(&cp) // CJK Strokes
-            || (0x31F0..=0x31FF).contains(&cp) // Katakana Phonetic Extensions
-            || (0x3200..=0x33FF).contains(&cp) // Enclosed CJK Letters, CJK Compatibility
-            || (0x3400..=0x4DBF).contains(&cp) // CJK Extension A
-            || (0x4E00..=0x9FFF).contains(&cp) // CJK Unified Ideographs
-            || (0xA000..=0xA4CF).contains(&cp) // Yi
-            || (0xAC00..=0xD7AF).contains(&cp) // Hangul Syllables
-            || (0xF900..=0xFAFF).contains(&cp) // CJK Compatibility Ideographs
-            || (0xFE30..=0xFE4F).contains(&cp) // CJK Compatibility Forms
-            || (0xFF01..=0xFF60).contains(&cp) // Fullwidth Forms
-            || (0xFFE0..=0xFFE6).contains(&cp) // Fullwidth Signs
-            || (0x1F200..=0x1F2FF).contains(&cp) // Enclosed Ideographic Supplement
-            || (0x20000..=0x2EBEF).contains(&cp) // CJK Extension B through H
-            || (0x2EBF0..=0x2EE5F).contains(&cp) // CJK Extension I
-            || (0x30000..=0x3134F).contains(&cp) // CJK Extension G, H supplementary
+        (0x4E00..=0x9FFF).contains(&cp)
+            || (0x3400..=0x4DBF).contains(&cp)
+            || (0x20000..=0x2CEAF).contains(&cp)
+            || (0x3040..=0x309F).contains(&cp)
+            || (0x30A0..=0x30FF).contains(&cp)
+            || (0xAC00..=0xD7AF).contains(&cp)
+            || (0x1100..=0x11FF).contains(&cp)
     }
 }

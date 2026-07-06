@@ -67,6 +67,7 @@ fn render_relationship_label(r: &RelationshipType) -> &'static str {
     }
 }
 
+#[allow(dead_code)]
 fn visibility_char(v: Visibility) -> char {
     match v {
         Visibility::Public => '+',

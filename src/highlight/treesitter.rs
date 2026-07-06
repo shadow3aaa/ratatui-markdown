@@ -13,8 +13,6 @@ struct LangEntry {
     highlights_query: &'static str,
 }
 
-type HighlightConfig = tree_sitter_highlight::HighlightConfiguration;
-
 macro_rules! lang_entry {
     ($lang_crate:ident) => {{
         LangEntry {
@@ -308,7 +306,7 @@ const PROTO_HIGHLIGHTS: &str = r#"
 ["(" ")" "[" "]" "{" "}"] @punctuation.bracket
 "#;
 
-fn build_config(entry: &LangEntry) -> HighlightConfig {
+fn build_config(entry: &LangEntry) -> tree_sitter_highlight::HighlightConfiguration {
     let mut config = tree_sitter_highlight::HighlightConfiguration::new(
         entry.language.clone(),
         "",
@@ -324,7 +322,6 @@ fn build_config(entry: &LangEntry) -> HighlightConfig {
 pub struct TreeSitterHighlighter {
     highlighter: Mutex<Highlighter>,
     code_colors: CodeColors,
-    config_cache: Mutex<std::collections::HashMap<String, HighlightConfig>>,
 }
 
 impl TreeSitterHighlighter {
@@ -332,7 +329,6 @@ impl TreeSitterHighlighter {
         Self {
             highlighter: Mutex::new(Highlighter::new()),
             code_colors: CodeColors::default(),
-            config_cache: Mutex::new(std::collections::HashMap::new()),
         }
     }
 
@@ -358,17 +354,10 @@ impl CodeHighlighter for TreeSitterHighlighter {
             Some(e) => e,
             None => return Vec::new(),
         };
-
-        let mut cache = self.config_cache.lock().unwrap_or_else(|e| e.into_inner());
-        if !cache.contains_key(lang) {
-            let config = build_config(&entry);
-            cache.insert(lang.to_string(), config);
-        }
-
+        let config = build_config(&entry);
         let mut hl = self.highlighter.lock().unwrap_or_else(|e| e.into_inner());
 
-        let config = cache.get(lang).unwrap();
-        let events = match hl.highlight(config, code.as_bytes(), None, |_| None) {
+        let events = match hl.highlight(&config, code.as_bytes(), None, |_| None) {
             Ok(e) => e,
             Err(_) => return Vec::new(),
         };

@@ -55,10 +55,11 @@ impl HybridScrollView {
                     }
                 } else {
                     self.engaged_region = None;
+                    self.last_center = self.viewport_center();
                     if self.scroll_offset < self.max_offset() {
                         self.scroll_offset += 1;
+                        self.last_center = self.viewport_center();
                     }
-                    self.last_center = self.viewport_center();
                 }
             }
         } else if self.scroll_offset < self.max_offset() {
@@ -85,10 +86,11 @@ impl HybridScrollView {
                     }
                 } else {
                     self.engaged_region = None;
+                    self.last_center = self.viewport_center();
                     if self.scroll_offset > 0 {
                         self.scroll_offset -= 1;
+                        self.last_center = self.viewport_center();
                     }
-                    self.last_center = self.viewport_center();
                 }
             }
         } else if self.scroll_offset > 0 {
@@ -141,15 +143,14 @@ impl HybridScrollView {
     }
 
     pub fn page_down(&mut self, lines: usize) {
-        self.scroll_offset = self
-            .scroll_offset
-            .saturating_add(lines)
-            .min(self.max_offset());
-        self.last_center = self.viewport_center();
+        for _ in 0..lines {
+            self.scroll_down();
+        }
     }
 
     pub fn page_up(&mut self, lines: usize) {
-        self.scroll_offset = self.scroll_offset.saturating_sub(lines);
-        self.last_center = self.viewport_center();
+        for _ in 0..lines {
+            self.scroll_up();
+        }
     }
 }

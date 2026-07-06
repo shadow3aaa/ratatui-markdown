@@ -52,7 +52,6 @@ impl<T: ListItemRenderer> ScrollableList<T> {
         }
     }
 
-    #[must_use]
     pub fn with_title(mut self, title: impl Into<String>) -> Self {
         self.title = Some(title.into());
         self
@@ -68,7 +67,6 @@ impl<T: ListItemRenderer> ScrollableList<T> {
         self.scroll_offset = 0;
     }
 
-    #[must_use]
     pub fn with_items(mut self, items: Vec<T>) -> Self {
         self.set_items(items);
         self
