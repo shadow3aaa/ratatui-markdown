@@ -12,7 +12,6 @@ use crate::theme::RichTextTheme;
 pub(super) fn apply_cursor_and_selection(
     line: &mut Line<'static>,
     cursor_col: usize,
-    _horizontal_scroll: usize,
     cursor_style: &CursorStyle,
     selection: Option<&Selection>,
     selection_style: &SelectionStyle,

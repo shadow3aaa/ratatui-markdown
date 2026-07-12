@@ -261,7 +261,6 @@ impl TextInput {
                     cursor::apply_cursor_and_selection(
                         line,
                         cursor_col,
-                        self.horizontal_scroll,
                         &self.cursor_style,
                         self.selection.as_ref(),
                         &self.selection_style,
