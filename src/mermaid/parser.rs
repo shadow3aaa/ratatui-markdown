@@ -204,3 +204,78 @@ fn parse_edge(pair: pest::iterators::Pair<Rule>) -> (EdgeType, Option<String>) {
     }
     (EdgeType::Arrow, None)
 }
+
+/// Parse one line against a grammar rule. Returns `None` when the line is not
+/// that construct (comments, headers, and unrelated directives).
+pub(crate) fn parse_rule(rule: Rule, line: &str) -> Option<pest::iterators::Pair<'_, Rule>> {
+    MermaidParser::parse(rule, line).ok()?.next()
+}
+
+/// Descendants whose rule matches `rule`, in source order.
+/// Quoted spans are not searched, so a label cannot leak structural tokens.
+pub(crate) fn children<'a>(
+    pair: &pest::iterators::Pair<'a, Rule>,
+    rule: Rule,
+) -> Vec<pest::iterators::Pair<'a, Rule>> {
+    let mut out = Vec::new();
+    collect_children(pair, rule, &mut out);
+    out
+}
+
+fn collect_children<'a>(
+    pair: &pest::iterators::Pair<'a, Rule>,
+    rule: Rule,
+    out: &mut Vec<pest::iterators::Pair<'a, Rule>>,
+) {
+    for inner in pair.clone().into_inner() {
+        if inner.as_rule() == rule {
+            out.push(inner);
+        } else if inner.as_rule() != Rule::quoted {
+            collect_children(&inner, rule, out);
+        }
+    }
+}
+
+/// First descendant whose rule matches `rule`.
+pub(crate) fn child<'a>(
+    pair: &pest::iterators::Pair<'a, Rule>,
+    rule: Rule,
+) -> Option<pest::iterators::Pair<'a, Rule>> {
+    children(pair, rule).into_iter().next()
+}
+
+/// Text of a descendant rule, with surrounding quotes removed when the matched
+/// node is a `quoted` string.
+pub(crate) fn text_of(pair: &pest::iterators::Pair<'_, Rule>, rule: Rule) -> Option<String> {
+    let node = find_rule(pair, rule)?;
+    Some(unquote(&node))
+}
+
+fn find_rule<'a>(
+    pair: &pest::iterators::Pair<'a, Rule>,
+    rule: Rule,
+) -> Option<pest::iterators::Pair<'a, Rule>> {
+    for inner in pair.clone().into_inner() {
+        if inner.as_rule() == rule {
+            return Some(inner);
+        }
+        if let Some(found) = find_rule(&inner, rule) {
+            return Some(found);
+        }
+    }
+    None
+}
+
+fn unquote(pair: &pest::iterators::Pair<'_, Rule>) -> String {
+    if pair.as_rule() == Rule::quoted {
+        return find_rule(pair, Rule::qinner)
+            .map(|p| p.as_str().to_string())
+            .unwrap_or_default();
+    }
+    if let Some(inner) = pair.clone().into_inner().next() {
+        if inner.as_rule() == Rule::quoted {
+            return unquote(&inner);
+        }
+    }
+    pair.as_str().trim().to_string()
+}

@@ -3,6 +3,8 @@ use ratatui::{
     text::{Line, Span},
 };
 
+#[cfg(feature = "markdown")]
+use crate::markdown::parse_inline_formatting;
 use crate::theme::RichTextTheme;
 
 pub fn render_edit_mode(
@@ -111,364 +113,240 @@ pub(in crate::text_input) fn line_col_to_char_offset(
 
 fn style_source_spans(text: &str, theme: &impl RichTextTheme) -> Vec<Span<'static>> {
     let expanded = text.replace('\t', "    ");
-    let mut spans: Vec<Span<'static>> = Vec::new();
-    let chars: Vec<char> = expanded.chars().collect();
-    let len = chars.len();
-    let mut i = 0;
-    let mut current = String::new();
-    let text_color = theme.get_text_color();
-    let muted_color = theme.get_muted_text_color();
-
-    macro_rules! flush_current {
-        () => {
-            if !current.is_empty() {
-                spans.push(Span::styled(
-                    current.clone(),
-                    Style::default().fg(text_color),
-                ));
-                current.clear();
-            }
-        };
+    #[cfg(feature = "markdown")]
+    if let Some(spans) = style_block_marker(&expanded, theme) {
+        return spans;
     }
-
-    while i < len {
-        if chars[i] == '#' && (i == 0 || chars[i - 1] == '\n') {
-            flush_current!();
-            let mut hash_count = 0;
-            let start = i;
-            while i < len && chars[i] == '#' {
-                hash_count += 1;
-                i += 1;
-            }
-            if i < len && chars[i] == ' ' {
-                i += 1;
-                let hashes: String = chars[start..start + hash_count].iter().collect();
-                let space = " ".to_string();
-                spans.push(Span::styled(
-                    hashes,
-                    Style::default()
-                        .fg(theme.get_primary_color())
-                        .add_modifier(Modifier::BOLD),
-                ));
-                spans.push(Span::styled(
-                    space,
-                    Style::default().fg(theme.get_primary_color()),
-                ));
-                let rest: String = chars[i..].iter().take_while(|c| **c != '\n').collect();
-                if !rest.is_empty() {
+    let mut spans = Vec::new();
+    for segment in classify_edit_segments(&expanded) {
+        match segment {
+            EditSegment::Plain(value) => {
+                if !value.is_empty() {
                     spans.push(Span::styled(
-                        rest.clone(),
-                        Style::default().fg(text_color).add_modifier(Modifier::BOLD),
+                        value,
+                        Style::default().fg(theme.get_text_color()),
                     ));
-                    i += rest.chars().count();
                 }
-                continue;
-            } else {
-                let hashes: String = chars[start..i].iter().collect();
-                current.push_str(&hashes);
-                continue;
             }
-        }
-
-        if chars[i] == '*' && i + 2 < len && chars[i + 1] == '*' && chars[i + 2] == '*' {
-            flush_current!();
-            let start = i + 3;
-            let mut found = false;
-            let mut end = start;
-            while end + 2 < len {
-                if chars[end] == '*' && chars[end + 1] == '*' && chars[end + 2] == '*' {
-                    let delim: String = chars[i..i + 3].iter().collect();
-                    let content: String = chars[start..end].iter().collect();
-                    spans.push(Span::styled(delim, Style::default().fg(muted_color)));
-                    spans.push(Span::styled(
-                        content.clone(),
-                        Style::default()
-                            .fg(text_color)
-                            .add_modifier(Modifier::BOLD | Modifier::ITALIC),
-                    ));
-                    let delim_end: String = chars[end..end + 3].iter().collect();
-                    spans.push(Span::styled(delim_end, Style::default().fg(muted_color)));
-                    i = end + 3;
-                    found = true;
-                    break;
-                }
-                end += 1;
-            }
-            if !found {
-                current.push('*');
-                current.push('*');
-                current.push('*');
-                i += 3;
-            }
-            continue;
-        }
-
-        if (chars[i] == '*' || chars[i] == '_') && i + 1 < len && chars[i + 1] == chars[i] {
-            flush_current!();
-            let delimiter = chars[i];
-            let start = i + 2;
-            let mut end = start;
-            let mut found = false;
-            while end + 1 < len {
-                if chars[end] == delimiter && chars[end + 1] == delimiter {
-                    let delim: String = chars[i..i + 2].iter().collect();
-                    let content: String = chars[start..end].iter().collect();
-                    spans.push(Span::styled(delim, Style::default().fg(muted_color)));
-                    spans.push(Span::styled(
-                        content.clone(),
-                        Style::default().fg(text_color).add_modifier(Modifier::BOLD),
-                    ));
-                    let delim_end: String = chars[end..end + 2].iter().collect();
-                    spans.push(Span::styled(delim_end, Style::default().fg(muted_color)));
-                    i = end + 2;
-                    found = true;
-                    break;
-                }
-                end += 1;
-            }
-            if !found {
-                current.push(chars[i]);
-                current.push(chars[i]);
-                i += 2;
-            }
-            continue;
-        }
-
-        if chars[i] == '*' || chars[i] == '_' {
-            let is_left_flanking = i == 0
-                || chars[i - 1] == ' '
-                || chars[i - 1] == '\t'
-                || chars[i - 1] == '\n'
-                || chars[i - 1] == '('
-                || chars[i - 1] == '[';
-            if !is_left_flanking {
-                current.push(chars[i]);
-                i += 1;
-                continue;
-            }
-            flush_current!();
-            let delimiter = chars[i];
-            let start = i + 1;
-            let mut end = start;
-            let mut found = false;
-            while end < len {
-                if chars[end] == delimiter {
-                    let delim = delimiter.to_string();
-                    let content: String = chars[start..end].iter().collect();
-                    spans.push(Span::styled(delim, Style::default().fg(muted_color)));
-                    spans.push(Span::styled(
-                        content.clone(),
-                        Style::default()
-                            .fg(text_color)
-                            .add_modifier(Modifier::ITALIC),
-                    ));
-                    let delim_end = delimiter.to_string();
-                    spans.push(Span::styled(delim_end, Style::default().fg(muted_color)));
-                    i = end + 1;
-                    found = true;
-                    break;
-                }
-                end += 1;
-            }
-            if !found {
-                current.push(chars[i]);
-                i += 1;
-            }
-            continue;
-        }
-
-        if chars[i] == '`' {
-            flush_current!();
-            let start = i + 1;
-            let mut end = start;
-            let mut found = false;
-            while end < len {
-                if chars[end] == '`' {
-                    found = true;
-                    break;
-                }
-                end += 1;
-            }
-            if found {
-                let backtick = "`".to_string();
-                let content: String = chars[start..end].iter().collect();
-                let backtick_end = "`".to_string();
-                spans.push(Span::styled(backtick, Style::default().fg(muted_color)));
-                spans.push(Span::styled(
-                    content.clone(),
-                    Style::default().fg(theme.get_accent_yellow()),
-                ));
-                spans.push(Span::styled(backtick_end, Style::default().fg(muted_color)));
-                i = end + 1;
-            } else {
-                current.push('`');
-                i += 1;
-            }
-            continue;
-        }
-
-        if chars[i] == '~' && i + 1 < len && chars[i + 1] == '~' {
-            flush_current!();
-            let start = i + 2;
-            let mut end = start;
-            let mut found = false;
-            while end + 1 < len {
-                if chars[end] == '~' && chars[end + 1] == '~' {
-                    let delim = "~~".to_string();
-                    let content: String = chars[start..end].iter().collect();
-                    spans.push(Span::styled(delim, Style::default().fg(muted_color)));
-                    spans.push(Span::styled(
-                        content.clone(),
-                        Style::default()
-                            .fg(text_color)
-                            .add_modifier(Modifier::CROSSED_OUT),
-                    ));
-                    let delim_end = "~~".to_string();
-                    spans.push(Span::styled(delim_end, Style::default().fg(muted_color)));
-                    i = end + 2;
-                    found = true;
-                    break;
-                }
-                end += 1;
-            }
-            if !found {
-                current.push('~');
-                current.push('~');
-                i += 2;
-            }
-            continue;
-        }
-
-        if chars[i] == '[' {
-            let mut end_bracket = i + 1;
-            let mut found_link = false;
-            while end_bracket < len {
-                if chars[end_bracket] == ']' {
-                    if end_bracket + 1 < len && chars[end_bracket + 1] == '(' {
-                        let url_start = end_bracket + 2;
-                        let mut url_end = url_start;
-                        while url_end < len {
-                            if chars[url_end] == ')' {
-                                let bracket_open = "[".to_string();
-                                let link_text: String = chars[i + 1..end_bracket].iter().collect();
-                                let bracket_close_paren_open = "](".to_string();
-                                let url_text: String = chars[url_start..url_end].iter().collect();
-                                let paren_close = ")".to_string();
-
-                                flush_current!();
-                                spans.push(Span::styled(
-                                    bracket_open,
-                                    Style::default().fg(muted_color),
-                                ));
-                                spans.push(Span::styled(
-                                    link_text,
-                                    Style::default()
-                                        .fg(theme.get_primary_color())
-                                        .add_modifier(Modifier::UNDERLINED),
-                                ));
-                                spans.push(Span::styled(
-                                    bracket_close_paren_open,
-                                    Style::default().fg(muted_color),
-                                ));
-                                spans
-                                    .push(Span::styled(url_text, Style::default().fg(muted_color)));
-                                spans.push(Span::styled(
-                                    paren_close,
-                                    Style::default().fg(muted_color),
-                                ));
-                                i = url_end + 1;
-                                found_link = true;
-                                break;
-                            }
-                            url_end += 1;
-                        }
+            EditSegment::Delimited { open, content, close } => {
+                if open == "[" && close == ")" {
+                    push_link_spans(&mut spans, &content, theme);
+                } else {
+                    let content_style = inline_content_style(&content, theme);
+                    let marker = Style::default().fg(theme.get_muted_text_color());
+                    if !open.is_empty() {
+                        spans.push(Span::styled(open, marker));
                     }
-                    break;
+                    if !content.is_empty() {
+                        spans.push(Span::styled(content, content_style));
+                    }
+                    if !close.is_empty() {
+                        spans.push(Span::styled(close, marker));
+                    }
                 }
-                end_bracket += 1;
-            }
-            if found_link {
-                continue;
             }
         }
+    }
+    spans
+}
 
-        if chars[i] == '>' && (i == 0 || chars[i - 1] == '\n') {
-            flush_current!();
-            spans.push(Span::styled(
-                ">",
-                Style::default().fg(theme.get_info_color()),
-            ));
-            i += 1;
-            if i < len && chars[i] == ' ' {
-                spans.push(Span::styled(
-                    " ",
-                    Style::default().fg(theme.get_info_color()),
-                ));
-                i += 1;
-            }
-            let rest: String = chars[i..].iter().take_while(|c| **c != '\n').collect();
+fn push_link_spans(spans: &mut Vec<Span<'static>>, content: &str, theme: &impl RichTextTheme) {
+    let Some((label, url)) = content.split_once("](") else {
+        spans.push(Span::styled(
+            content.to_string(),
+            Style::default().fg(theme.get_text_color()),
+        ));
+        return;
+    };
+    let marker = Style::default().fg(theme.get_muted_text_color());
+    spans.push(Span::styled("[".to_string(), marker));
+    spans.push(Span::styled(
+        label.to_string(),
+        Style::default()
+            .fg(theme.get_primary_color())
+            .add_modifier(Modifier::UNDERLINED),
+    ));
+    spans.push(Span::styled("](".to_string(), marker));
+    spans.push(Span::styled(url.to_string(), marker));
+    spans.push(Span::styled(")".to_string(), marker));
+}
+
+#[cfg(feature = "markdown")]
+fn inline_content_style(content: &str, theme: &impl RichTextTheme) -> Style {
+    parse_inline_formatting(content, theme)
+        .into_iter()
+        .find(|span| !span.content.is_empty())
+        .map(|span| span.style)
+        .unwrap_or_else(|| Style::default().fg(theme.get_text_color()))
+}
+
+#[cfg(not(feature = "markdown"))]
+fn inline_content_style(_content: &str, theme: &impl RichTextTheme) -> Style {
+    Style::default().fg(theme.get_text_color())
+}
+
+#[cfg(feature = "markdown")]
+fn style_block_marker(text: &str, theme: &impl RichTextTheme) -> Option<Vec<Span<'static>>> {
+    let blocks = crate::markdown::MarkdownRenderer::new(usize::MAX).parse(text);
+    match blocks.first() {
+        Some(
+            crate::markdown::MarkdownBlock::Heading1(content)
+            | crate::markdown::MarkdownBlock::Heading2(content)
+            | crate::markdown::MarkdownBlock::Heading3(content),
+        ) if blocks.len() == 1 => {
+            let marker_len = text.find(content.as_str()).unwrap_or(0);
+            let (marker, rest) = text.split_at(marker_len);
+            let mut spans = vec![Span::styled(
+                marker.to_string(),
+                Style::default()
+                    .fg(theme.get_primary_color())
+                    .add_modifier(Modifier::BOLD),
+            )];
             if !rest.is_empty() {
                 spans.push(Span::styled(
-                    rest.clone(),
+                    rest.to_string(),
                     Style::default()
-                        .fg(text_color)
-                        .add_modifier(Modifier::ITALIC),
+                        .fg(theme.get_text_color())
+                        .add_modifier(Modifier::BOLD),
                 ));
-                i += rest.chars().count();
             }
-            continue;
+            Some(spans)
         }
-
-        if (chars[i] == '-' || chars[i] == '*')
-            && i + 1 < len
-            && chars[i + 1] == ' '
-            && (i == 0 || chars[i - 1] == '\n')
+        Some(crate::markdown::MarkdownBlock::ListItem(_, _))
+        | Some(crate::markdown::MarkdownBlock::TaskItem { .. })
+            if blocks.len() == 1 && text.starts_with(['-', '*', '+']) =>
         {
-            flush_current!();
-            let marker = chars[i].to_string();
-            let space = " ".to_string();
-            spans.push(Span::styled(marker, Style::default().fg(muted_color)));
-            spans.push(Span::styled(space, Style::default().fg(muted_color)));
-            i += 2;
-            continue;
+            let marker = Style::default().fg(theme.get_muted_text_color());
+            Some(vec![
+                Span::styled(text[..1].to_string(), marker),
+                Span::styled(text[1..].to_string(), Style::default().fg(theme.get_text_color())),
+            ])
         }
+        _ => None,
+    }
+}
 
-        if chars[i] == '`' && i + 2 < len && chars[i + 1] == '`' && chars[i + 2] == '`' {
-            flush_current!();
-            let fence_start = i;
-            let mut fence_end = fence_start + 3;
-            while fence_end + 2 < len {
-                if chars[fence_end] == '`'
-                    && chars[fence_end + 1] == '`'
-                    && chars[fence_end + 2] == '`'
-                {
-                    break;
-                }
-                fence_end += 1;
+enum EditSegment {
+    Plain(String),
+    Delimited {
+        open: String,
+        content: String,
+        close: String,
+    },
+}
+
+fn classify_edit_segments(text: &str) -> Vec<EditSegment> {
+    let chars: Vec<char> = text.chars().collect();
+    let mut segments = Vec::new();
+    let mut plain = String::new();
+    let mut i = 0usize;
+    while i < chars.len() {
+        if let Some((end, open_len, close_len)) = match_delimited(&chars, i) {
+            if !plain.is_empty() {
+                segments.push(EditSegment::Plain(std::mem::take(&mut plain)));
             }
-            let fence_line: String = if fence_end + 2 < len {
-                chars[fence_start..=fence_end + 2].iter().collect()
-            } else {
-                chars[fence_start..].iter().collect()
-            };
-            spans.push(Span::styled(
-                fence_line,
-                Style::default().fg(theme.get_secondary_color()),
-            ));
-            i = if fence_end + 2 < len {
-                fence_end + 3
-            } else {
-                len
-            };
+            segments.push(EditSegment::Delimited {
+                open: chars[i..i + open_len].iter().collect(),
+                content: chars[i + open_len..end - close_len].iter().collect(),
+                close: chars[end - close_len..end].iter().collect(),
+            });
+            i = end;
             continue;
         }
-
-        current.push(chars[i]);
+        plain.push(chars[i]);
         i += 1;
     }
+    if !plain.is_empty() {
+        segments.push(EditSegment::Plain(plain));
+    }
+    segments
+}
 
-    flush_current!();
-    spans
+fn match_delimited(chars: &[char], i: usize) -> Option<(usize, usize, usize)> {
+    if chars[i] == '`' {
+        let run = tick_run(chars, i);
+        return match_run(chars, i, run).map(|end| (end, run, run));
+    }
+    if chars[i] == '~' && chars.get(i + 1) == Some(&'~') {
+        return find_closer(chars, i + 2, &['~', '~']).map(|end| (end, 2, 2));
+    }
+    if chars[i] == '*' || chars[i] == '_' {
+        let run = if chars.get(i + 1) == Some(&chars[i]) && chars.get(i + 2) == Some(&chars[i]) {
+            3
+        } else if chars.get(i + 1) == Some(&chars[i]) {
+            2
+        } else if is_left_flanking(chars, i) {
+            1
+        } else {
+            return None;
+        };
+        let marker = vec![chars[i]; run];
+        return find_closer(chars, i + run, &marker).map(|end| (end, run, run));
+    }
+    if chars[i] == '[' {
+        let label_end = find_unescaped(chars, i + 1, ']')?;
+        if chars.get(label_end + 1) != Some(&'(') {
+            return None;
+        }
+        let url_end = find_unescaped(chars, label_end + 2, ')')?;
+        return Some((url_end + 1, 1, 1));
+    }
+    None
+}
+
+fn match_run(chars: &[char], i: usize, run: usize) -> Option<usize> {
+    if run == 0 {
+        return None;
+    }
+    let marker = chars[i];
+    let mut j = i + run;
+    while j < chars.len() {
+        if chars[j] == marker && tick_run(chars, j) == run {
+            return Some(j + run);
+        }
+        j += 1;
+    }
+    None
+}
+
+fn tick_run(chars: &[char], i: usize) -> usize {
+    let Some(marker) = chars.get(i).copied() else {
+        return 0;
+    };
+    let mut n = 0usize;
+    while chars.get(i + n) == Some(&marker) {
+        n += 1;
+    }
+    n
+}
+
+fn find_closer(chars: &[char], from: usize, marker: &[char]) -> Option<usize> {
+    if marker.is_empty() {
+        return None;
+    }
+    let mut j = from;
+    while j + marker.len() <= chars.len() {
+        if chars[j..j + marker.len()] == *marker && (j == 0 || chars[j - 1] != '\\') {
+            return Some(j + marker.len());
+        }
+        j += 1;
+    }
+    None
+}
+
+fn find_unescaped(chars: &[char], from: usize, target: char) -> Option<usize> {
+    let mut j = from;
+    while j < chars.len() {
+        if chars[j] == target && (j == 0 || chars[j - 1] != '\\') {
+            return Some(j);
+        }
+        j += 1;
+    }
+    None
+}
+
+fn is_left_flanking(chars: &[char], i: usize) -> bool {
+    i == 0 || matches!(chars[i - 1], ' ' | '\t' | '\n' | '(' | '[')
 }
 
 fn apply_horizontal_scroll(line: &Line<'_>, scroll: usize, max_width: usize) -> Line<'static> {

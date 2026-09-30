@@ -53,10 +53,12 @@ pub fn parse_quadrant(source: &str) -> Option<QuadrantChart> {
         }
 
         if let Some(rest) = line.strip_prefix("x-axis ") {
-            let parts: Vec<&str> = rest.split("-->").collect();
-            if parts.len() == 2 {
-                x_left = parts[0].trim().to_string();
-                x_right = parts[1].trim().to_string();
+            if let Some(span) = super::parser::parse_rule(super::parser::Rule::axis_span, rest) {
+                let sides = super::parser::children(&span, super::parser::Rule::axis_side);
+                if sides.len() == 2 {
+                    x_left = axis_side_text(&sides[0]);
+                    x_right = axis_side_text(&sides[1]);
+                }
             }
             continue;
         }
@@ -65,10 +67,12 @@ pub fn parse_quadrant(source: &str) -> Option<QuadrantChart> {
         }
 
         if let Some(rest) = line.strip_prefix("y-axis ") {
-            let parts: Vec<&str> = rest.split("-->").collect();
-            if parts.len() == 2 {
-                y_bottom = parts[0].trim().to_string();
-                y_top = parts[1].trim().to_string();
+            if let Some(span) = super::parser::parse_rule(super::parser::Rule::axis_span, rest) {
+                let sides = super::parser::children(&span, super::parser::Rule::axis_side);
+                if sides.len() == 2 {
+                    y_bottom = axis_side_text(&sides[0]);
+                    y_top = axis_side_text(&sides[1]);
+                }
             }
             continue;
         }
@@ -86,23 +90,14 @@ pub fn parse_quadrant(source: &str) -> Option<QuadrantChart> {
             }
         }
 
-        if let Some(colon) = line.find(':') {
-            let label = line[..colon].trim();
-            let rest = &line[colon + 1..].trim();
-            if let (Some(open), Some(close)) = (rest.find('['), rest.find(']')) {
-                let coords = &rest[open + 1..close].trim();
-                let parts: Vec<&str> = coords.split(',').collect();
-                if parts.len() == 2 {
-                    if let (Ok(x), Ok(y)) = (
-                        parts[0].trim().parse::<f64>(),
-                        parts[1].trim().parse::<f64>(),
-                    ) {
-                        points.push(QuadrantPoint {
-                            label: label.to_string(),
-                            x,
-                            y,
-                        });
-                    }
+        if let Some(point) = super::parser::parse_rule(super::parser::Rule::quad_point, line) {
+            let label = super::parser::text_of(&point, super::parser::Rule::quad_label)
+                .unwrap_or_default();
+            let nums = super::parser::children(&point, super::parser::Rule::number);
+            if nums.len() == 2 && !label.is_empty() {
+                if let (Ok(x), Ok(y)) = (nums[0].as_str().parse::<f64>(), nums[1].as_str().parse::<f64>())
+                {
+                    points.push(QuadrantPoint { label, x, y });
                 }
             }
         }
@@ -137,6 +132,12 @@ pub fn parse_quadrant(source: &str) -> Option<QuadrantChart> {
         quadrants,
         points,
     })
+}
+
+fn axis_side_text(side: &pest::iterators::Pair<'_, super::parser::Rule>) -> String {
+    super::parser::text_of(side, super::parser::Rule::qinner)
+        .or_else(|| super::parser::text_of(side, super::parser::Rule::axis_plain))
+        .unwrap_or_else(|| side.as_str().trim().trim_matches('"').to_string())
 }
 
 pub fn render_quadrant(
@@ -285,5 +286,24 @@ mod tests {
     fn test_parse_empty_returns_none() {
         let chart = parse_quadrant("quadrantChart\n");
         assert!(chart.is_none());
+    }
+}
+
+#[cfg(test)]
+mod grammar_tests {
+    use super::*;
+
+    #[test]
+    fn axis_arrow_is_not_split_inside_a_side_and_points_use_brackets() {
+        let chart = parse_quadrant(
+            "quadrantChart\n    x-axis \"low --> mid\" --> High\n    Point: [0.2, 0.8]\n",
+        )
+        .unwrap();
+        assert_eq!(chart.x_axis_left, "low --> mid");
+        assert_eq!(chart.x_axis_right, "High");
+        assert_eq!(chart.points.len(), 1);
+        assert_eq!(chart.points[0].label, "Point");
+        assert!((chart.points[0].x - 0.2).abs() < 1e-9);
+        assert!((chart.points[0].y - 0.8).abs() < 1e-9);
     }
 }

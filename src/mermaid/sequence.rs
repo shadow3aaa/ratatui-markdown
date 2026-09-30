@@ -50,34 +50,22 @@ pub fn parse_sequence(source: &str) -> Option<SequenceDiagram> {
 }
 
 fn parse_message(line: &str) -> Option<SequenceMessage> {
-    let line = line.trim();
-
-    let (arrow_str, arrow_start, arrow_end) = find_arrow_pos(line)?;
-
-    let arrow_kind = match arrow_str {
-        "->" => SeqArrowKind::Solid,
-        "-->" => SeqArrowKind::Dotted,
-        "->>" => SeqArrowKind::SolidOpen,
-        "-->>" => SeqArrowKind::DottedOpen,
-        _ => return None,
-    };
-
-    let from = line[..arrow_start].trim().to_string();
-    let to_and_text = line[arrow_end..].trim();
-
-    let (to, text) = if let Some(colon_pos) = to_and_text.find(':') {
-        (
-            to_and_text[..colon_pos].trim().to_string(),
-            to_and_text[colon_pos + 1..].trim().to_string(),
-        )
-    } else {
-        (to_and_text.trim().to_string(), String::new())
-    };
-
+    let parsed = super::parser::parse_rule(super::parser::Rule::seq_line, line)?;
+    let actors = super::parser::children(&parsed, super::parser::Rule::seq_actor);
+    if actors.len() != 2 {
+        return None;
+    }
+    let arrow = super::parser::child(&parsed, super::parser::Rule::seq_arrow)?;
+    let arrow_kind = arrow_kind_of(&arrow)?;
+    let from = actors[0].as_str().trim().to_string();
+    let to = actors[1].as_str().trim().to_string();
     if from.is_empty() || to.is_empty() {
         return None;
     }
-
+    let text = super::parser::text_of(&parsed, super::parser::Rule::seq_text)
+        .unwrap_or_default()
+        .trim()
+        .to_string();
     Some(SequenceMessage {
         from,
         to,
@@ -86,13 +74,15 @@ fn parse_message(line: &str) -> Option<SequenceMessage> {
     })
 }
 
-fn find_arrow_pos(s: &str) -> Option<(&str, usize, usize)> {
-    for arrow in &["-->>", "->>", "-->", "->"] {
-        if let Some(idx) = s.find(arrow) {
-            return Some((*arrow, idx, idx + arrow.len()));
-        }
-    }
-    None
+fn arrow_kind_of(arrow: &pest::iterators::Pair<'_, super::parser::Rule>) -> Option<SeqArrowKind> {
+    let inner = arrow.clone().into_inner().next()?;
+    Some(match inner.as_rule() {
+        super::parser::Rule::seq_solid => SeqArrowKind::Solid,
+        super::parser::Rule::seq_dotted => SeqArrowKind::Dotted,
+        super::parser::Rule::seq_dsolid_open => SeqArrowKind::SolidOpen,
+        super::parser::Rule::seq_ddot_open => SeqArrowKind::DottedOpen,
+        _ => return None,
+    })
 }
 
 pub fn render_sequence(
@@ -328,4 +318,25 @@ pub fn render_sequence(
     }));
 
     lines
+}
+
+#[cfg(test)]
+mod grammar_tests {
+    use super::*;
+
+    #[test]
+    fn arrow_inside_message_text_is_not_a_second_arrow() {
+        let diagram = parse_sequence("sequenceDiagram\n    Alice->>Bob: use -> not -->> here").unwrap();
+        assert_eq!(diagram.messages.len(), 1);
+        assert_eq!(diagram.messages[0].from, "Alice");
+        assert_eq!(diagram.messages[0].to, "Bob");
+        assert_eq!(diagram.messages[0].text, "use -> not -->> here");
+        assert_eq!(diagram.messages[0].arrow_kind, SeqArrowKind::SolidOpen);
+    }
+
+    #[test]
+    fn longest_sequence_arrow_wins() {
+        let diagram = parse_sequence("sequenceDiagram\n    A-->>B: dotted open").unwrap();
+        assert_eq!(diagram.messages[0].arrow_kind, SeqArrowKind::DottedOpen);
+    }
 }

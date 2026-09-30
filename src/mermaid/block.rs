@@ -43,13 +43,9 @@ pub fn parse_block(source: &str) -> Option<BlockDiagram> {
             continue;
         }
 
-        if line.contains("columns") && !line.starts_with("columns") {
-            let parts: Vec<&str> = line.split_whitespace().collect();
-            for part in &parts {
-                if part == &"columns" {
-                    continue;
-                }
-                if let Ok(n) = part.parse::<usize>() {
+        if let Some(parsed) = super::parser::parse_rule(super::parser::Rule::block_columns, line) {
+            if let Some(n) = super::parser::text_of(&parsed, super::parser::Rule::block_num) {
+                if let Ok(n) = n.parse::<usize>() {
                     columns = n.max(1);
                 }
             }
@@ -169,6 +165,18 @@ mod tests {
         let mermaid = convert_to_mermaid_diagram(&diagram);
         assert_eq!(mermaid.nodes.len(), 4);
         assert!(mermaid.edges.len() >= 3);
+        Ok(())
+    }
+
+    #[test]
+    fn columns_keyword_is_not_a_block_and_accepts_a_leading_token() -> Result<()> {
+        let diagram = parse_block("block-beta\n    layout columns 3\n    A B\n")
+            .ok_or_else(|| anyhow::anyhow!("failed to parse block"))?;
+        assert_eq!(diagram.columns, 3);
+        assert_eq!(
+            diagram.blocks.iter().map(|b| b.id.as_str()).collect::<Vec<_>>(),
+            vec!["A", "B"]
+        );
         Ok(())
     }
 }

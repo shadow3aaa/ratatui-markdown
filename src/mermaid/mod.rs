@@ -114,9 +114,9 @@ fn render_state_diagram(
     Some(lines)
 }
 
-fn parse_state_diagram(source: &str) -> Option<MermaidDiagram> {
+pub(crate) fn parse_state_diagram(source: &str) -> Option<MermaidDiagram> {
     use std::collections::HashSet;
-    use types::{EdgeType, MermaidEdge, MermaidNode, NodeShape};
+    use types::{EdgeType, MermaidEdge, MermaidNode};
 
     let mut nodes: Vec<MermaidNode> = Vec::new();
     let mut edges: Vec<MermaidEdge> = Vec::new();
@@ -132,67 +132,56 @@ fn parse_state_diagram(source: &str) -> Option<MermaidDiagram> {
             continue;
         }
 
-        let arrow = line
-            .find("-->")
-            .map(|idx| (idx, "-->"))
-            .or_else(|| line.find("---").map(|idx| (idx, "---")));
+        let Some(parsed) = parser::parse_rule(parser::Rule::state_line, line) else {
+            continue;
+        };
+        let ends = parser::children(&parsed, parser::Rule::state_end);
+        let Some(edge) = parser::child(&parsed, parser::Rule::state_edge) else {
+            continue;
+        };
+        if ends.len() != 2 {
+            continue;
+        }
 
-        if let Some((arrow_pos, arrow_str)) = arrow {
-            let from_raw = line[..arrow_pos].trim();
-            let to_raw = line[arrow_pos + arrow_str.len()..].trim();
+        let label_text = parser::text_of(&edge, parser::Rule::state_ltxt).filter(|t| !t.is_empty());
+        let arrow_is_line = parser::child(&edge, parser::Rule::state_ln).is_some()
+            || parser::child(&edge, parser::Rule::state_ln_lbl).is_some();
 
-            if from_raw.is_empty() || to_raw.is_empty() {
-                continue;
-            }
+        let _from_marker = parser::child(&ends[0], parser::Rule::state_marker).is_some();
+        let to_marker = parser::child(&ends[1], parser::Rule::state_marker).is_some();
+        let (from_id, from_label, from_shape) = state_endpoint(&ends[0], false);
+        let (to_id, to_label, to_shape) = state_endpoint(&ends[1], to_marker);
 
-            let label_text = None;
-
-            let (from_id, from_label, from_shape) = if from_raw == "[*]" {
-                ("__start__".to_string(), "●".to_string(), NodeShape::Circle)
-            } else {
-                (
-                    from_raw.to_string(),
-                    from_raw.to_string(),
-                    NodeShape::Rounded,
-                )
-            };
-
-            let (to_id, to_label, to_shape) = if to_raw == "[*]" {
-                ("__end__".to_string(), "●".to_string(), NodeShape::Circle)
-            } else {
-                (to_raw.to_string(), to_raw.to_string(), NodeShape::Rounded)
-            };
-
-            if !node_set.contains(&from_id) {
-                node_set.insert(from_id.clone());
-                nodes.push(MermaidNode {
-                    id: from_id.clone(),
-                    label: from_label,
-                    shape: from_shape,
-                });
-            }
-            if !node_set.contains(&to_id) {
-                node_set.insert(to_id.clone());
-                nodes.push(MermaidNode {
-                    id: to_id.clone(),
-                    label: to_label,
-                    shape: to_shape,
-                });
-            }
-
-            let edge_type = if arrow_str == "-->" {
-                EdgeType::Arrow
-            } else {
-                EdgeType::Line
-            };
-
-            edges.push(MermaidEdge {
-                source: from_id,
-                target: to_id,
-                label: label_text,
-                edge_type,
+        if !node_set.contains(&from_id) {
+            node_set.insert(from_id.clone());
+            nodes.push(MermaidNode {
+                id: from_id.clone(),
+                label: from_label,
+                shape: from_shape,
             });
         }
+        if !node_set.contains(&to_id) {
+            node_set.insert(to_id.clone());
+            let node = MermaidNode {
+                id: to_id.clone(),
+                label: to_label,
+                shape: to_shape,
+            };
+            nodes.push(node);
+        }
+
+        let edge_type = if arrow_is_line {
+            EdgeType::Line
+        } else {
+            EdgeType::Arrow
+        };
+
+        edges.push(MermaidEdge {
+            source: from_id,
+            target: to_id,
+            label: label_text,
+            edge_type,
+        });
     }
 
     if nodes.is_empty() {
@@ -204,6 +193,23 @@ fn parse_state_diagram(source: &str) -> Option<MermaidDiagram> {
         nodes,
         edges,
     })
+}
+
+fn state_endpoint(
+    pair: &pest::iterators::Pair<'_, parser::Rule>,
+    end_marker: bool,
+) -> (String, String, types::NodeShape) {
+    if parser::child(pair, parser::Rule::state_marker).is_some() {
+        let id = if end_marker { "__end__" } else { "__start__" };
+        (
+            id.to_string(),
+            "\u{25cf}".to_string(),
+            types::NodeShape::Circle,
+        )
+    } else {
+        let id = parser::text_of(pair, parser::Rule::state_id).unwrap_or_default();
+        (id.clone(), id, types::NodeShape::Rounded)
+    }
 }
 
 #[cfg(test)]
@@ -286,6 +292,18 @@ mod parse_tests {
         .ok_or_else(|| anyhow::anyhow!("failed to parse state diagram"))?;
         assert_eq!(diagram.nodes.len(), 3);
         assert_eq!(diagram.edges.len(), 3);
+        Ok(())
+    }
+
+    #[test]
+    fn arrow_inside_a_state_label_is_not_the_transition() -> anyhow::Result<()> {
+        let diagram = parse_state_diagram("stateDiagram-v2\n    Idle -->|go --> next| Running")
+            .ok_or_else(|| anyhow::anyhow!("failed to parse labeled state"))?;
+        assert_eq!(diagram.edges.len(), 1);
+        assert_eq!(diagram.edges[0].source, "Idle");
+        assert_eq!(diagram.edges[0].target, "Running");
+        assert_eq!(diagram.edges[0].label.as_deref(), Some("go --> next"));
+        assert_eq!(diagram.edges[0].edge_type, EdgeType::Arrow);
         Ok(())
     }
 }

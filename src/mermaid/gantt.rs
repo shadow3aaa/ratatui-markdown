@@ -68,51 +68,43 @@ pub fn parse_gantt(source: &str) -> Option<GanttChart> {
 }
 
 fn parse_task(line: &str) -> Option<GanttTask> {
-    let line = line.trim();
-    if line.is_empty() {
+    let parsed = super::parser::parse_rule(super::parser::Rule::gantt_task, line)?;
+    let name = super::parser::text_of(&parsed, super::parser::Rule::gantt_name)?;
+    let name = name.trim().to_string();
+    if name.is_empty() {
         return None;
     }
-
-    let colon_pos = line.find(':')?;
-    let name = line[..colon_pos].trim().to_string();
-    let rest = line[colon_pos + 1..].trim();
-
-    let parts: Vec<&str> = rest.split(',').map(|s| s.trim()).collect();
-
-    let mut id: Option<String> = None;
-    let mut deps: Option<Vec<String>> = None;
+    let id = super::parser::text_of(&parsed, super::parser::Rule::gantt_id)
+        .map(|s| s.trim().to_string())
+        .filter(|s| !s.is_empty());
+    let mut deps = Vec::new();
     let mut duration: Option<String> = None;
-
-    if !parts.is_empty() {
-        id = Some(parts[0].to_string());
-    }
-
-    for part in parts.iter().skip(1) {
-        if let Some(dur_str) = part.strip_suffix('d') {
-            if dur_str.parse::<usize>().is_ok() || dur_str.parse::<f64>().is_ok() {
-                duration = Some(part.to_string());
-                continue;
+    for field in super::parser::children(&parsed, super::parser::Rule::gantt_field) {
+        if let Some(after) = super::parser::child(&field, super::parser::Rule::gantt_after) {
+            deps.extend(
+                super::parser::children(&after, super::parser::Rule::gantt_dep)
+                    .into_iter()
+                    .map(|d| d.as_str().trim().to_string())
+                    .filter(|d| !d.is_empty()),
+            );
+            if duration.is_none() {
+                if let Some(dur) = super::parser::child(&after, super::parser::Rule::gantt_dur) {
+                    duration = Some(dur.as_str().to_string());
+                }
+            }
+        } else if duration.is_none() {
+            if let Some(dur) = super::parser::child(&field, super::parser::Rule::gantt_dur) {
+                duration = Some(dur.as_str().to_string());
+            } else if let Some(other) = super::parser::child(&field, super::parser::Rule::gantt_other)
+            {
+                duration = Some(other.as_str().trim().to_string());
             }
         }
-        if part.starts_with("after ") {
-            deps = Some(
-                part.strip_prefix("after ")
-                    .expect("already checked with starts_with")
-                    .split(',')
-                    .map(|s| s.trim().to_string())
-                    .collect(),
-            );
-            continue;
-        }
-        if duration.is_none() {
-            duration = Some(part.to_string());
-        }
     }
-
     Some(GanttTask {
         name,
         id,
-        deps: deps.unwrap_or_default(),
+        deps,
         duration,
     })
 }
@@ -261,4 +253,17 @@ fn truncate_str(s: &str, max_width: usize) -> String {
         result.push('…');
     }
     result
+}
+
+#[cfg(test)]
+mod grammar_tests {
+    use super::*;
+
+    #[test]
+    fn quoted_task_name_may_contain_a_comma() {
+        let chart = parse_gantt("gantt\nsection S\n\"Design, review\" :a1, 3d").unwrap();
+        assert_eq!(chart.sections[0].tasks[0].name, "Design, review");
+        assert_eq!(chart.sections[0].tasks[0].id.as_deref(), Some("a1"));
+        assert_eq!(chart.sections[0].tasks[0].duration.as_deref(), Some("3d"));
+    }
 }

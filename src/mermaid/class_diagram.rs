@@ -214,10 +214,10 @@ pub fn parse_class_diagram(source: &str) -> Option<ClassDiagram> {
                 }
                 continue;
             }
-        } else if line.starts_with("class ") && line.contains('{') {
-            let rest = line[6..].trim();
-            if let Some(name) = rest.split('{').next() {
-                let name = name.trim().to_string();
+        } else if let Some(opened) =
+            super::parser::parse_rule(super::parser::Rule::class_open, line)
+        {
+            if let Some(name) = super::parser::text_of(&opened, super::parser::Rule::class_name) {
                 if !name.is_empty() {
                     in_class_body = true;
                     brace_depth = 1;
@@ -226,32 +226,18 @@ pub fn parse_class_diagram(source: &str) -> Option<ClassDiagram> {
                         attributes: Vec::new(),
                         methods: Vec::new(),
                     });
-                    let body_part = line.split('{').nth(1).unwrap_or("");
-                    if body_part.contains('}') {
-                        if let Some(content) = body_part.split('}').next() {
-                            for member_str in content.split([';', '\n']) {
-                                let trimmed = member_str.trim();
-                                if !trimmed.is_empty() {
-                                    if let Some(m) = parse_member(trimmed) {
-                                        if let Some(ref mut class) = current_class {
-                                            if m.is_method {
-                                                class.methods.push(m);
-                                            } else {
-                                                class.attributes.push(m);
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                        brace_depth = 0;
-                        in_class_body = false;
-                        if let Some(class) = current_class.take() {
-                            classes.push(class);
-                        }
-                    }
                 }
             }
+        } else if let Some(header) =
+            super::parser::parse_rule(super::parser::Rule::class_header, line)
+        {
+            push_class_header(
+                header,
+                &mut current_class,
+                &mut in_class_body,
+                &mut brace_depth,
+                &mut classes,
+            );
         } else {
             let rel = parse_relationship(line);
             if let Some(r) = rel {
@@ -278,29 +264,80 @@ pub fn parse_class_diagram(source: &str) -> Option<ClassDiagram> {
     })
 }
 
+fn push_class_header(
+    header: pest::iterators::Pair<'_, super::parser::Rule>,
+    current_class: &mut Option<ClassDefinition>,
+    in_class_body: &mut bool,
+    brace_depth: &mut i32,
+    classes: &mut Vec<ClassDefinition>,
+) {
+    let Some(name) = super::parser::text_of(&header, super::parser::Rule::class_name) else {
+        return;
+    };
+    if name.is_empty() {
+        return;
+    }
+    *in_class_body = true;
+    *brace_depth = 1;
+    *current_class = Some(ClassDefinition {
+        name,
+        attributes: Vec::new(),
+        methods: Vec::new(),
+    });
+    let Some(body) = super::parser::text_of(&header, super::parser::Rule::class_body_inner) else {
+        return;
+    };
+    let inline = body.trim();
+    if inline.is_empty() {
+        return;
+    }
+    for member_str in inline.split(';') {
+        let trimmed = member_str.trim();
+        if trimmed.is_empty() {
+            continue;
+        }
+        if let Some(m) = parse_member(trimmed) {
+            if let Some(class) = current_class.as_mut() {
+                if m.is_method {
+                    class.methods.push(m);
+                } else {
+                    class.attributes.push(m);
+                }
+            }
+        }
+    }
+    *brace_depth = 0;
+    *in_class_body = false;
+    if let Some(class) = current_class.take() {
+        classes.push(class);
+    }
+}
+
 fn parse_member(line: &str) -> Option<ClassMember> {
     let line = line.trim();
     if line.is_empty() || line.starts_with('%') {
         return None;
     }
 
-    let first = line.chars().next()?;
-    let visibility = match first {
-        '+' => Visibility::Public,
-        '-' => Visibility::Private,
-        '#' => Visibility::Protected,
-        '~' => Visibility::Internal,
-        _ => {
-            return Some(ClassMember {
-                visibility: Visibility::Internal,
-                name: line.to_string(),
-                type_info: String::new(),
-                is_method: line.contains('('),
-            })
-        }
+    let Some(parsed) = super::parser::parse_rule(super::parser::Rule::class_member, line) else {
+        return Some(ClassMember {
+            visibility: Visibility::Internal,
+            name: line.to_string(),
+            type_info: String::new(),
+            is_method: line.contains('('),
+        });
     };
 
-    let rest = &line[1..].trim();
+    let vis = super::parser::child(&parsed, super::parser::Rule::vis)?;
+    let visibility = match vis.as_str() {
+        "+" => Visibility::Public,
+        "-" => Visibility::Private,
+        "#" => Visibility::Protected,
+        "~" => Visibility::Internal,
+        _ => Visibility::Internal,
+    };
+    let rest = super::parser::text_of(&parsed, super::parser::Rule::member_rest).unwrap_or_default();
+    let rest = rest.trim();
     let is_method = rest.contains('(');
 
     if is_method {
@@ -345,43 +382,51 @@ fn parse_relationship(line: &str) -> Option<ClassRelationship> {
         return None;
     }
 
-    let patterns: &[(&str, RelationshipType)] = &[
-        ("<|--", RelationshipType::Inheritance),
-        ("*--", RelationshipType::Composition),
-        ("o--", RelationshipType::Aggregation),
-        ("..|>", RelationshipType::Implements),
-        ("..", RelationshipType::Dependency),
-        ("<--", RelationshipType::DirectedAssociation),
-        ("-->", RelationshipType::DirectedAssociation),
-        ("--", RelationshipType::Association),
-    ];
-
-    for (pattern, rel_type) in patterns {
-        if let Some(pos) = line.find(pattern) {
-            let from = line[..pos].trim();
-            let after = &line[pos + pattern.len()..];
-            let (to, label) = if let Some(colon) = after.find(':') {
-                (
-                    after[..colon].trim().to_string(),
-                    Some(after[colon + 1..].trim().to_string()),
-                )
-            } else {
-                (after.trim().to_string(), None)
-            };
-            if from.is_empty() || to.is_empty() {
-                return None;
-            }
-            let from = from.trim_matches('"').to_string();
-            let to = to.trim_matches('"').to_string();
-            return Some(ClassRelationship {
-                from,
-                to,
-                rel_type: *rel_type,
-                label,
-            });
-        }
+    let parsed = super::parser::parse_rule(super::parser::Rule::class_rel, line)?;
+    let ends = super::parser::children(&parsed, super::parser::Rule::class_end);
+    if ends.len() != 2 {
+        return None;
     }
-    None
+    let op = super::parser::child(&parsed, super::parser::Rule::class_op)?;
+    let rel_type = relationship_of(&op)?;
+    let from = class_end_text(&ends[0]);
+    let to = class_end_text(&ends[1]);
+    if from.is_empty() || to.is_empty() {
+        return None;
+    }
+    let label = super::parser::text_of(&parsed, super::parser::Rule::class_label)
+        .map(|s| s.trim().to_string())
+        .filter(|s| !s.is_empty());
+    Some(ClassRelationship {
+        from,
+        to,
+        rel_type,
+        label,
+    })
+}
+
+fn class_end_text(end: &pest::iterators::Pair<'_, super::parser::Rule>) -> String {
+    super::parser::text_of(end, super::parser::Rule::qinner)
+        .or_else(|| super::parser::text_of(end, super::parser::Rule::class_name))
+        .unwrap_or_else(|| end.as_str().trim().trim_matches('"').to_string())
+}
+
+fn relationship_of(
+    op: &pest::iterators::Pair<'_, super::parser::Rule>,
+) -> Option<RelationshipType> {
+    let inner = op.clone().into_inner().next()?;
+    Some(match inner.as_rule() {
+        super::parser::Rule::op_inherit => RelationshipType::Inheritance,
+        super::parser::Rule::op_implements => RelationshipType::Implements,
+        super::parser::Rule::op_comp => RelationshipType::Composition,
+        super::parser::Rule::op_agg => RelationshipType::Aggregation,
+        super::parser::Rule::op_dep => RelationshipType::Dependency,
+        super::parser::Rule::op_dir_left | super::parser::Rule::op_dir_right => {
+            RelationshipType::DirectedAssociation
+        }
+        super::parser::Rule::op_assoc => RelationshipType::Association,
+        _ => return None,
+    })
 }
 
 pub fn convert_to_mermaid_diagram(class_diagram: &ClassDiagram) -> MermaidDiagram {
@@ -529,6 +574,23 @@ mod tests {
         let mermaid = convert_to_mermaid_diagram(&diagram);
         assert_eq!(mermaid.nodes.len(), 2);
         assert_eq!(mermaid.edges.len(), 1);
+        Ok(())
+    }
+
+    #[test]
+    fn directed_association_is_not_a_plain_association() -> Result<()> {
+        let rel = parse_relationship("A --> B")
+            .ok_or_else(|| anyhow::anyhow!("failed to parse relationship"))?;
+        assert_eq!(rel.from, "A");
+        assert_eq!(rel.to, "B");
+        assert_eq!(rel.rel_type, RelationshipType::DirectedAssociation);
+
+        let plain = parse_relationship("A -- B").unwrap();
+        assert_eq!(plain.rel_type, RelationshipType::Association);
+
+        let implements = parse_relationship("A ..|> B").unwrap();
+        assert_eq!(implements.rel_type, RelationshipType::Implements);
+        assert_ne!(implements.rel_type, RelationshipType::Dependency);
         Ok(())
     }
 }

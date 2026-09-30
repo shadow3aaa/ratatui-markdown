@@ -41,18 +41,26 @@ static END_STATE: &str = "stateDiagram-v2
     S2 --> [*]";
 
 static END_STATE_EXPECTED: &str = "
-                                     ╭────╮
-                                     │ ●  │
-                                     ╰────╯
-                                        │
-                                        │
-                                        ▼
-                                     ╭────╮
-                                     │ S1 │
-                                     ╰────╯
-                                        │
-                                        │
-                                        ▼";
+                                     \u{256d}\u{2500}\u{2500}\u{2500}\u{2500}\u{256e}
+                                     \u{2502} \u{25cf}  \u{2502}
+                                     \u{2570}\u{2500}\u{2500}\u{2500}\u{2500}\u{256f}
+                                        \u{2502}
+                                        \u{2502}
+                                        \u{25bc}
+                                     \u{256d}\u{2500}\u{2500}\u{2500}\u{2500}\u{256e}
+                                     \u{2502} S1 \u{2502}
+                                     \u{2570}\u{2500}\u{2500}\u{2500}\u{2500}\u{256f}
+                                        \u{2502}
+                                        \u{2502}
+                                        \u{25bc}
+                                     \u{256d}\u{2500}\u{2500}\u{2500}\u{2500}\u{256e}
+                                     \u{2502} S2 \u{2502}
+                                     \u{2570}\u{2500}\u{2500}\u{2500}\u{2500}\u{256f}
+                                        \u{2502}
+                                        \u{2502}
+                                        \u{25bc}
+                                     \u{256d}\u{2500}\u{2500}\u{2500}\u{2500}\u{256e}
+                                     \u{2502} \u{25cf}  \u{2502}";
 
 #[test]
 fn simple_state() {
@@ -68,6 +76,6 @@ fn three_states() {
 
 #[test]
 fn end_state() {
-    let buf = render_to_buffer(END_STATE, 80, 12);
+    let buf = render_to_buffer(END_STATE, 80, 20);
     assert_buffer_eq(&buf, END_STATE_EXPECTED);
 }

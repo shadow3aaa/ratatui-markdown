@@ -33,3 +33,143 @@ ltxt = { (!"|" ~ ANY)* }
 
 sp = _{ " " | "\t" }
 nl = _{ "\r\n" | "\n" }
+
+// ---------------------------------------------------------------------------
+// Shared tokens. `sp` and `nl` are already silent above.
+// ---------------------------------------------------------------------------
+
+ident = @{ (ASCII_ALPHA | "_") ~ (ASCII_ALPHANUMERIC | "_")* }
+
+quoted = ${
+    "\"" ~ qinner ~ "\""
+}
+qinner = @{ (!("\"" | nl) ~ ANY)* }
+
+// Non-empty unquoted text that stops before a structural delimiter.
+plain_text = @{ (!("\"" | ":" | "[" | "]" | "{" | "}" | "|" | nl | " " | "\t" | "-" | "<" | ">" | "*" | "o" | ".") ~ ANY)+ }
+
+text_atom = { quoted | plain_text }
+
+// ---------------------------------------------------------------------------
+// State diagram transitions: `from --> to` / `---` with optional `|label|`.
+// `[*]` is a start/end marker. Arrows are ordered longest-first so `-->`
+// is not consumed as `---` plus a stray `>`.
+// ---------------------------------------------------------------------------
+
+state_line = { SOI ~ sp* ~ state_end ~ sp* ~ state_edge ~ sp* ~ state_end ~ sp* ~ EOI }
+state_end = { state_marker | state_id }
+state_marker = { "[*]" }
+state_id = @{ (!state_arrow ~ !"[" ~ !"|" ~ !nl ~ !sp ~ ANY)+ }
+state_edge = { state_arr_lbl | state_arr | state_ln_lbl | state_ln }
+state_arr_lbl = { "-->" ~ sp* ~ state_pipe }
+state_arr = { "-->" }
+state_ln_lbl = { "---" ~ sp* ~ state_pipe }
+state_ln = { "---" }
+state_pipe = { "|" ~ state_ltxt ~ "|" }
+state_ltxt = { (!"|" ~ ANY)* }
+state_arrow = _{ "-->" | "---" }
+
+// ---------------------------------------------------------------------------
+// Sequence messages. Longest arrow wins (`-->>` before `-->` / `->>` / `->`).
+// The message text after `:` is free-form, so an arrow glyph inside the label
+// is not a second arrow.
+// ---------------------------------------------------------------------------
+
+seq_line = { SOI ~ sp* ~ seq_actor ~ sp* ~ seq_arrow ~ sp* ~ seq_actor ~ seq_body? ~ sp* ~ EOI }
+seq_actor = @{ (!seq_arrow_tok ~ !":" ~ !sp ~ !nl ~ ANY)+ }
+seq_arrow = { seq_ddot_open | seq_dsolid_open | seq_dotted | seq_solid }
+seq_ddot_open = { "-->>" }
+seq_dsolid_open = { "->>" }
+seq_dotted = { "-->" }
+seq_solid = { "->" }
+seq_arrow_tok = _{ "-->>" | "->>" | "-->" | "->" }
+seq_body = { ":" ~ seq_text }
+seq_text = { (!nl ~ ANY)* }
+
+// ---------------------------------------------------------------------------
+// Class diagrams: headers, members, and relationships.
+// Relationship operators are atomic and ordered longest-first so `--` is not
+// chosen when the input is `-->`, and `..` is not chosen when the input is
+// `..|>`.
+// ---------------------------------------------------------------------------
+
+class_open = { SOI ~ sp* ~ "class" ~ sp+ ~ class_name ~ sp* ~ "{" ~ sp* ~ EOI }
+class_header = { SOI ~ sp* ~ "class" ~ sp+ ~ class_name ~ sp* ~ class_body ~ sp* ~ EOI }
+class_name = @{ (!sp ~ !"{" ~ !nl ~ ANY)+ }
+class_body = { "{" ~ class_body_inner ~ "}" }
+class_body_inner = { (!"}" ~ ANY)* }
+
+class_member = { SOI ~ sp* ~ vis ~ sp* ~ member_rest ~ sp* ~ EOI }
+vis = { "+" | "-" | "#" | "~" }
+member_rest = { (!nl ~ ANY)* }
+
+class_rel = {
+    SOI ~ sp* ~ class_end ~ sp* ~ class_op ~ sp* ~ class_end
+    ~ (sp* ~ ":" ~ sp* ~ class_label)? ~ sp* ~ EOI
+}
+class_end = { quoted | class_name }
+class_op = {
+    op_inherit | op_implements | op_comp | op_agg | op_dep
+    | op_dir_left | op_dir_right | op_assoc
+}
+op_inherit = @{ "<|--" }
+op_implements = @{ "..|>" }
+op_comp = @{ "*--" }
+op_agg = @{ "o--" }
+op_dep = @{ ".." }
+op_dir_left = @{ "<--" }
+op_dir_right = @{ "-->" }
+op_assoc = @{ "--" }
+class_label = { (!nl ~ ANY)* }
+
+// ---------------------------------------------------------------------------
+// Gantt tasks: `name : id, after a, b, 3d`.
+// A quoted name may contain commas and colons. Duration is digits plus `d`.
+// ---------------------------------------------------------------------------
+
+gantt_task = { SOI ~ sp* ~ gantt_name ~ sp* ~ ":" ~ sp* ~ gantt_meta ~ sp* ~ EOI }
+gantt_name = { quoted | gantt_plain }
+gantt_plain = @{ (!":" ~ !nl ~ ANY)+ ~ (!" " ~ !"\t") }
+gantt_meta = { gantt_id ~ (sp* ~ "," ~ sp* ~ gantt_field)* }
+gantt_id = @{ (!"," ~ !nl ~ ANY)+ }
+gantt_field = { gantt_after | gantt_dur | gantt_other }
+gantt_after = {
+    "after" ~ sp+ ~ gantt_dep
+    ~ (sp* ~ "," ~ sp* ~ (gantt_dur | gantt_dep))*
+}
+gantt_dep = @{ (!"," ~ !nl ~ !" " ~ !"\t" ~ ANY)+ }
+gantt_dur = @{ ASCII_DIGIT+ ~ ("." ~ ASCII_DIGIT+)? ~ "d" }
+gantt_other = @{ (!"," ~ !nl ~ ANY)+ }
+
+// ---------------------------------------------------------------------------
+// Pie slices: `"label" : value`. The colon that separates the value is the
+// one after the closing quote, so a colon inside the quotes stays in the label.
+// ---------------------------------------------------------------------------
+
+pie_slice = { SOI ~ sp* ~ pie_label ~ sp* ~ ":" ~ sp* ~ pie_value ~ sp* ~ EOI }
+pie_label = { quoted | pie_plain }
+pie_plain = @{ (!":" ~ !nl ~ ANY)+ }
+pie_value = @{ "-"? ~ ASCII_DIGIT+ ~ ("." ~ ASCII_DIGIT+)? }
+
+// ---------------------------------------------------------------------------
+// Quadrant chart: axis `left --> right` and point `label: [x, y]`.
+// ---------------------------------------------------------------------------
+
+axis_span = { SOI ~ sp* ~ axis_side ~ sp* ~ "-->" ~ sp* ~ axis_side ~ sp* ~ EOI }
+axis_side = { quoted | axis_plain }
+axis_plain = @{ (!"-" ~ !nl ~ ANY)+ }
+
+quad_point = {
+    SOI ~ sp* ~ quad_label ~ sp* ~ ":" ~ sp* ~ "[" ~ sp* ~ number ~ sp* ~ "," ~ sp* ~ number ~ sp* ~ "]" ~ sp* ~ EOI
+}
+quad_label = { quoted | quad_plain }
+quad_plain = @{ (!":" ~ !nl ~ ANY)+ }
+number = @{ "-"? ~ ASCII_DIGIT+ ~ ("." ~ ASCII_DIGIT+)? }
+
+// ---------------------------------------------------------------------------
+// block-beta: `columns N` (keyword may follow other tokens on the line).
+// ---------------------------------------------------------------------------
+
+block_columns = { SOI ~ sp* ~ (!"columns" ~ block_tok ~ sp+)* ~ "columns" ~ sp+ ~ block_num ~ sp* ~ EOI }
+block_tok = @{ (!sp ~ !nl ~ ANY)+ }
+block_num = @{ ASCII_DIGIT+ }

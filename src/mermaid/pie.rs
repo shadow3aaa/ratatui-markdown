@@ -53,27 +53,14 @@ pub fn parse_pie(source: &str) -> Option<PieChart> {
 }
 
 fn parse_slice(line: &str) -> Option<(String, f64)> {
-    let line = line.trim();
-    let (label_part, value_part) = if let Some(stripped) = line.strip_prefix('"') {
-        let end_quote = stripped.find('"')?;
-        let label = stripped[..end_quote].to_string();
-        let rest = stripped[end_quote + 1..].trim();
-        let value_str = rest.strip_prefix(':').unwrap_or(rest).trim();
-        (label, value_str.to_string())
-    } else {
-        let colon_pos = line.rfind(':')?;
-        (
-            line[..colon_pos].trim().to_string(),
-            line[colon_pos + 1..].trim().to_string(),
-        )
-    };
-
+    let parsed = super::parser::parse_rule(super::parser::Rule::pie_slice, line)?;
+    let label = super::parser::text_of(&parsed, super::parser::Rule::pie_label)?;
+    let value_part = super::parser::text_of(&parsed, super::parser::Rule::pie_value)?;
     let value: f64 = value_part.parse().ok()?;
-    if value <= 0.0 {
+    if value <= 0.0 || label.is_empty() {
         return None;
     }
-
-    Some((label_part, value))
+    Some((label, value))
 }
 
 pub fn render_pie(
@@ -181,4 +168,17 @@ pub fn render_pie(
     }
 
     lines
+}
+
+#[cfg(test)]
+mod grammar_tests {
+    use super::*;
+
+    #[test]
+    fn colon_inside_quoted_label_stays_in_the_label() {
+        let chart = parse_pie("pie\n    \"Dogs: big\" : 10\n    \"Cats\" : 5").unwrap();
+        assert_eq!(chart.slices[0].0, "Dogs: big");
+        assert_eq!(chart.slices[0].1, 10.0);
+        assert_eq!(chart.slices[1].0, "Cats");
+    }
 }

@@ -21,6 +21,9 @@ viewer = []
 pulldown-cmark = "0.13"
 ratatui = "0.30"
 unicode-width = "0.2"
+pest = "2.8"
+pest_derive = "2.8"
+anyhow = "1"
 
 [lib]
 name = "daat_locus_md"
