@@ -82,8 +82,9 @@ pub fn compute_layout(
     let (h_spacing, v_spacing) =
         adapt_spacing(diagram, &graph.layers, node_v_height, max_width, max_height);
 
+    let nodes_by_id: HashMap<&str, _> = diagram.nodes.iter().map(|node| (node.id.as_str(), node)).collect();
+
     let mut layout_nodes = Vec::new();
-    let mut node_positions: HashMap<String, (usize, usize)> = HashMap::new();
 
     let mut y_offset = 0usize;
     for layer in &graph.layers {
@@ -95,10 +96,8 @@ pub fn compute_layout(
         let mut node_widths: Vec<usize> = layer
             .iter()
             .map(|id| {
-                let node = diagram
-                    .nodes
-                    .iter()
-                    .find(|n| &n.id == id)
+                let node = nodes_by_id
+                    .get(id.as_str())
                     .expect("layer node must exist in diagram nodes");
                 let text_w = if node.label.contains('\n') {
                     label_display_width(&node.label)
@@ -136,10 +135,8 @@ pub fn compute_layout(
         let mut x = x_start;
         let mut layer_max_h = 0usize;
         for (i, id) in layer.iter().enumerate() {
-            let node = diagram
-                .nodes
-                .iter()
-                .find(|n| &n.id == id)
+            let node = nodes_by_id
+                .get(id.as_str())
                 .expect("layer node must exist in diagram nodes");
             let w = node_widths[i];
             let is_multiline = node.label.contains('\n');
@@ -172,7 +169,6 @@ pub fn compute_layout(
                 width: w,
                 height: h,
             });
-            node_positions.insert(id.clone(), (nx + w / 2, ny + h / 2));
             x += w + h_spacing;
         }
 

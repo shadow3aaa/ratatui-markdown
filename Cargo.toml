@@ -9,21 +9,24 @@ repository = "https://github.com/shadow3aaa/daat-locus-md"
 [features]
 default = []
 markdown = []
-highlight = []
-image = []
+highlight = ["dep:tree-sitter"]
+image = ["dep:image"]
 mermaid = []
 scroll = []
-tree = []
-preview = []
-viewer = []
+tree = ["dep:serde_json", "dep:toml"]
+preview = ["markdown", "scroll", "tree"]
+viewer = ["markdown", "scroll"]
 
 [dependencies]
-pulldown-cmark = "0.13"
 ratatui = "0.30"
 unicode-width = "0.2"
 pest = "2.8"
 pest_derive = "2.8"
 anyhow = "1"
+image = { version = "0.25.10", optional = true, default-features = false, features = ["png"] }
+serde_json = { version = "1.0.150", optional = true }
+toml = { version = "0.8.23", optional = true }
+tree-sitter = { version = "0.25.10", optional = true }
 
 [lib]
 name = "daat_locus_md"

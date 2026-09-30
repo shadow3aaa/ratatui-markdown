@@ -16,7 +16,6 @@ pub struct MarkdownViewer {
     scroll: u16,
     doc_h: u16,
     content_h: u16,
-    cached_width: usize,
     title: String,
     key_hints: String,
     max_width: usize,
@@ -36,7 +35,6 @@ impl MarkdownViewer {
             scroll: 0,
             doc_h: 0,
             content_h: 0,
-            cached_width: 0,
             title: String::new(),
             key_hints: String::new(),
             max_width: 0,
@@ -62,7 +60,6 @@ impl MarkdownViewer {
         if self.content != content {
             self.content = content.to_string();
             self.lines.clear();
-            self.cached_width = 0;
         }
         self.ensure_rendered(theme);
     }

@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use std::sync::Mutex;
 
 use tree_sitter_highlight::Highlighter;
@@ -321,6 +322,7 @@ fn build_config(entry: &LangEntry) -> tree_sitter_highlight::HighlightConfigurat
 
 pub struct TreeSitterHighlighter {
     highlighter: Mutex<Highlighter>,
+    configs: Mutex<HashMap<String, tree_sitter_highlight::HighlightConfiguration>>,
     code_colors: CodeColors,
 }
 
@@ -328,6 +330,7 @@ impl TreeSitterHighlighter {
     pub fn new() -> Self {
         Self {
             highlighter: Mutex::new(Highlighter::new()),
+            configs: Mutex::new(HashMap::new()),
             code_colors: CodeColors::default(),
         }
     }
@@ -354,7 +357,13 @@ impl CodeHighlighter for TreeSitterHighlighter {
             Some(e) => e,
             None => return Vec::new(),
         };
-        let config = build_config(&entry);
+        let config = {
+            let mut configs = self.configs.lock().unwrap_or_else(|e| e.into_inner());
+            if !configs.contains_key(lang) {
+                configs.insert(lang.to_string(), build_config(&entry));
+            }
+            configs.get(lang).expect("config inserted above").clone()
+        };
         let mut hl = self.highlighter.lock().unwrap_or_else(|e| e.into_inner());
 
         let events = match hl.highlight(&config, code.as_bytes(), None, |_| None) {

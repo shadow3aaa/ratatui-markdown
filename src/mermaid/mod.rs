@@ -7,6 +7,7 @@ mod parser;
 mod pie;
 mod quadrant;
 mod render;
+pub(crate) use render::char_span;
 mod sequence;
 #[cfg(test)]
 mod tests;
@@ -147,7 +148,6 @@ pub(crate) fn parse_state_diagram(source: &str) -> Option<MermaidDiagram> {
         let arrow_is_line = parser::child(&edge, parser::Rule::state_ln).is_some()
             || parser::child(&edge, parser::Rule::state_ln_lbl).is_some();
 
-        let _from_marker = parser::child(&ends[0], parser::Rule::state_marker).is_some();
         let to_marker = parser::child(&ends[1], parser::Rule::state_marker).is_some();
         let (from_id, from_label, from_shape) = state_endpoint(&ends[0], false);
         let (to_id, to_label, to_shape) = state_endpoint(&ends[1], to_marker);

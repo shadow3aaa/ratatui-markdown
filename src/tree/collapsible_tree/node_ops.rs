@@ -106,6 +106,10 @@ impl CollapsibleTree {
         entries
     }
 
+    pub fn total_lines(&self) -> usize {
+        self.flatten().len()
+    }
+
     pub(crate) fn flatten_node(
         value: &serde_json::Value,
         path: &str,

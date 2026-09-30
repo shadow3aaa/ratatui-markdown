@@ -381,10 +381,6 @@ mod example_tree_list_tests {
             Some(format!("{}{}", prefix, marker))
         }
 
-        fn tree_indent_unit(&self) -> Option<usize> {
-            Some(3)
-        }
-
         fn tree_continuation_prefix(
             &self,
             indent: u8,
@@ -1183,26 +1179,6 @@ mod example_image_tests {
             cropped.height(),
             py_h,
             "cropped height matches viewport pixels"
-        );
-    }
-
-    #[test]
-    fn image_placement_has_crop_field_none_by_default() {
-        let renderer = MarkdownRenderer::new(76);
-        let blocks = vec![MarkdownBlock::Image {
-            alt: "t".into(),
-            path: "t.webp".into(),
-        }];
-        let resolved = vec![ResolvedImage {
-            path: "t.webp".into(),
-            image: make_img(90, 36),
-        }];
-        let mut r = SimpleResolver::new(9, 18);
-        let output = renderer.render_full(&blocks, &test_theme(), &resolved, &mut r, 70, 20);
-        assert_eq!(output.images.len(), 1);
-        assert!(
-            output.images[0].crop.is_none(),
-            "crop should be None by default from render_full"
         );
     }
 

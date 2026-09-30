@@ -58,9 +58,7 @@ pub(super) fn navigate_to_last(tree: &mut SpanTree) {
 }
 
 pub(super) fn scroll_up(tree: &mut SpanTree, lines: usize) {
-    for _ in 0..lines {
-        tree.scroll_offset = tree.scroll_offset.saturating_sub(1);
-    }
+    tree.scroll_offset = tree.scroll_offset.saturating_sub(lines);
 }
 
 pub(super) fn scroll_down(tree: &mut SpanTree, lines: usize) {

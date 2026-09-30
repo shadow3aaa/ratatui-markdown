@@ -12,8 +12,49 @@ use super::{
 };
 use crate::theme::RichTextTheme;
 
-const HLINE: char = '─';
+fn static_char(ch: char) -> &'static str {
+    use std::collections::HashMap;
+    use std::sync::Mutex;
+    match ch {
+        ' ' => " ",
+        '─' => "─",
+        '│' => "│",
+        '┌' => "┌",
+        '┐' => "┐",
+        '└' => "└",
+        '┘' => "┘",
+        '╭' => "╭",
+        '╮' => "╮",
+        '╰' => "╰",
+        '╯' => "╯",
+        '├' => "├",
+        '┤' => "┤",
+        '┬' => "┬",
+        '┴' => "┴",
+        '┼' => "┼",
+        '▼' => "▼",
+        '▲' => "▲",
+        '►' => "►",
+        '◄' => "◄",
+        other => {
+            static CACHE: Mutex<Option<HashMap<char, &'static str>>> = Mutex::new(None);
+            let mut guard = CACHE.lock().unwrap_or_else(|err| err.into_inner());
+            let map = guard.get_or_insert_with(HashMap::new);
+            if let Some(existing) = map.get(&other) {
+                return existing;
+            }
+            let leaked: &'static str = Box::leak(other.to_string().into_boxed_str());
+            map.insert(other, leaked);
+            leaked
+        }
+    }
+}
+
+pub(crate) fn char_span(ch: char) -> &'static str {
+    static_char(ch)
+}
 const VLINE: char = '│';
+const HLINE: char = '─';
 const TLC: char = '┌';
 const TRC: char = '┐';
 const BLC: char = '└';
@@ -23,9 +64,9 @@ const RTRC: char = '╮';
 const RBLC: char = '╰';
 const RBRC: char = '╯';
 
-#[derive(Clone)]
+#[derive(Clone, Copy)]
 struct Cell {
-    ch: char,
+    ch: &'static str,
     style: Style,
     is_edge: bool,
 }
@@ -49,7 +90,7 @@ pub fn render_layout(
     }
 
     let blank = Cell {
-        ch: ' ',
+        ch: " ",
         style: Style::default(),
         is_edge: false,
     };
@@ -68,7 +109,7 @@ pub fn render_layout(
     for row in grid.iter() {
         let spans: Vec<Span<'static>> = row
             .iter()
-            .map(|cell| Span::styled(cell.ch.to_string(), cell.style))
+            .map(|cell| Span::styled(cell.ch, cell.style))
             .collect();
         lines.push(Line::from(spans));
     }
@@ -100,18 +141,18 @@ fn draw_node(grid: &mut [Vec<Cell>], node: &LayoutNode, theme: &impl RichTextThe
     if y < grid.len() && x + w <= grid[0].len() {
         let row = &mut grid[y];
         row[x] = Cell {
-            ch: tl,
+            ch: static_char(tl),
             style: border_style,
             is_edge: false,
         };
         row[x + w - 1] = Cell {
-            ch: tr,
+            ch: static_char(tr),
             style: border_style,
             is_edge: false,
         };
         for cell in row.iter_mut().take(x + w - 1).skip(x + 1) {
             *cell = Cell {
-                ch: HLINE,
+                ch: static_char(HLINE),
                 style: border_style,
                 is_edge: false,
             };
@@ -122,12 +163,12 @@ fn draw_node(grid: &mut [Vec<Cell>], node: &LayoutNode, theme: &impl RichTextThe
     if text_row < grid.len() && x + w <= grid[0].len() {
         let row = &mut grid[text_row];
         row[x] = Cell {
-            ch: VLINE,
+            ch: static_char(VLINE),
             style: border_style,
             is_edge: false,
         };
         row[x + w - 1] = Cell {
-            ch: VLINE,
+            ch: static_char(VLINE),
             style: border_style,
             is_edge: false,
         };
@@ -143,7 +184,7 @@ fn draw_node(grid: &mut [Vec<Cell>], node: &LayoutNode, theme: &impl RichTextThe
         for _ in 0..pad {
             if cx < x + w - 1 {
                 row[cx] = Cell {
-                    ch: ' ',
+                    ch: " ",
                     style: text_style,
                     is_edge: false,
                 };
@@ -153,7 +194,7 @@ fn draw_node(grid: &mut [Vec<Cell>], node: &LayoutNode, theme: &impl RichTextThe
         for ch in &label_chars {
             if cx < x + w - 1 {
                 row[cx] = Cell {
-                    ch: *ch,
+                    ch: static_char(*ch),
                     style: text_style,
                     is_edge: false,
                 };
@@ -162,7 +203,7 @@ fn draw_node(grid: &mut [Vec<Cell>], node: &LayoutNode, theme: &impl RichTextThe
         }
         while cx < x + w - 1 {
             row[cx] = Cell {
-                ch: ' ',
+                ch: " ",
                 style: text_style,
                 is_edge: false,
             };
@@ -177,18 +218,18 @@ fn draw_node(grid: &mut [Vec<Cell>], node: &LayoutNode, theme: &impl RichTextThe
         if vy < grid.len() && x + w <= grid[0].len() {
             let row = &mut grid[vy];
             row[x] = Cell {
-                ch: VLINE,
+                ch: static_char(VLINE),
                 style: border_style,
                 is_edge: false,
             };
             row[x + w - 1] = Cell {
-                ch: VLINE,
+                ch: static_char(VLINE),
                 style: border_style,
                 is_edge: false,
             };
             for cell in row.iter_mut().take(x + w - 1).skip(x + 1) {
                 *cell = Cell {
-                    ch: ' ',
+                    ch: " ",
                     style: text_style,
                     is_edge: false,
                 };
@@ -200,18 +241,18 @@ fn draw_node(grid: &mut [Vec<Cell>], node: &LayoutNode, theme: &impl RichTextThe
     if bottom_row < grid.len() && x + w <= grid[0].len() {
         let row = &mut grid[bottom_row];
         row[x] = Cell {
-            ch: bl,
+            ch: static_char(bl),
             style: border_style,
             is_edge: false,
         };
         row[x + w - 1] = Cell {
-            ch: br,
+            ch: static_char(br),
             style: border_style,
             is_edge: false,
         };
         for cell in row.iter_mut().take(x + w - 1).skip(x + 1) {
             *cell = Cell {
-                ch: HLINE,
+                ch: static_char(HLINE),
                 style: border_style,
                 is_edge: false,
             };
@@ -255,7 +296,7 @@ fn draw_multiline_node(grid: &mut [Vec<Cell>], node: &LayoutNode, theme: &impl R
                 Style::default().fg(theme.get_text_color())
             };
             row[cx] = Cell {
-                ch,
+                ch: static_char(ch),
                 style,
                 is_edge: false,
             };
@@ -400,7 +441,7 @@ fn draw_all_edges(
         if cy >= gh || cx >= gw {
             return false;
         }
-        grid[cy][cx].is_edge || grid[cy][cx].ch == ' '
+        grid[cy][cx].is_edge || grid[cy][cx].ch == " "
     });
 
     // ════════════════════════════════════════════════════════════
@@ -410,7 +451,7 @@ fn draw_all_edges(
         if cy >= gh || cx >= gw {
             continue;
         }
-        if !grid[cy][cx].is_edge && grid[cy][cx].ch != ' ' {
+        if !grid[cy][cx].is_edge && grid[cy][cx].ch != " " {
             continue;
         }
 
@@ -421,7 +462,7 @@ fn draw_all_edges(
 
         let ch = resolve_edge_char(up, down, left, right);
         grid[cy][cx] = Cell {
-            ch,
+            ch: static_char(ch),
             style: edge_style,
             is_edge: true,
         };
@@ -450,7 +491,7 @@ fn draw_all_edges(
         };
         if last.1 < gh && last.0 < gw {
             grid[last.1][last.0] = Cell {
-                ch: arrow_ch,
+                ch: static_char(arrow_ch),
                 style: arrow_style,
                 is_edge: true,
             };
@@ -591,8 +632,8 @@ fn resolve_edge_char(up: bool, down: bool, left: bool, right: bool) -> char {
 fn place_label_char(grid: &mut [Vec<Cell>], x: usize, y: usize, ch: char, style: Style) {
     if y < grid.len() && x < grid[0].len() {
         let cell = &mut grid[y][x];
-        if cell.ch == ' ' || cell.is_edge {
-            cell.ch = ch;
+        if cell.ch == " " || cell.is_edge {
+            cell.ch = static_char(ch);
             cell.style = style;
         }
     }

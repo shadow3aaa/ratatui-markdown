@@ -6,8 +6,8 @@ use ratatui::{
 use super::types::{SeqArrowKind, SequenceDiagram, SequenceMessage};
 use crate::theme::RichTextTheme;
 
-const HLINE: char = '─';
-const VLINE: char = '│';
+const HLINE: &str = "─";
+const VLINE: &str = "│";
 
 pub fn parse_sequence(source: &str) -> Option<SequenceDiagram> {
     let mut participants: Vec<String> = Vec::new();
@@ -99,7 +99,6 @@ pub fn render_sequence(
 
     let n_part = diagram.participants.len();
     let col_width = ((max_width - 2) / n_part).clamp(6, 20);
-    let _total_w = col_width * n_part + 2;
 
     let mut lines: Vec<Line<'static>> = Vec::new();
 
@@ -123,14 +122,14 @@ pub fn render_sequence(
             let left_pad = pad / 2;
             let right_pad = pad - left_pad;
             for _ in 0..left_pad {
-                spans.push(Span::styled(" ".to_string(), header_style));
+                spans.push(Span::styled(" ", header_style));
             }
             spans.push(Span::styled(name.clone(), header_style));
             for _ in 0..right_pad {
-                spans.push(Span::styled(" ".to_string(), header_style));
+                spans.push(Span::styled(" ", header_style));
             }
             if i < n_part - 1 {
-                spans.push(Span::styled(" ".to_string(), line_style));
+                spans.push(Span::styled(" ", line_style));
             }
         }
         lines.push(Line::from(spans));
@@ -154,13 +153,13 @@ pub fn render_sequence(
                 let center = col_width / 2;
                 for c in 0..col_width {
                     if c == center {
-                        spans.push(Span::styled(VLINE.to_string(), style));
+                        spans.push(Span::styled(VLINE, style));
                     } else {
-                        spans.push(Span::styled(" ".to_string(), style));
+                        spans.push(Span::styled(" ", style));
                     }
                 }
                 if i < n_part - 1 {
-                    spans.push(Span::styled(" ".to_string(), style));
+                    spans.push(Span::styled(" ", style));
                 }
             }
             spans
@@ -175,13 +174,13 @@ pub fn render_sequence(
                 let center = col_width / 2;
                 for c in 0..col_width {
                     if c == center {
-                        label_spans.push(Span::styled(VLINE.to_string(), line_style));
+                        label_spans.push(Span::styled(VLINE, line_style));
                     } else {
-                        label_spans.push(Span::styled(" ".to_string(), line_style));
+                        label_spans.push(Span::styled(" ", line_style));
                     }
                 }
                 if i < n_part - 1 {
-                    label_spans.push(Span::styled(" ".to_string(), line_style));
+                    label_spans.push(Span::styled(" ", line_style));
                 }
             }
 
@@ -211,7 +210,7 @@ pub fn render_sequence(
                 if pos < label_spans.len() {
                     let existing = &label_spans[pos];
                     if existing.content == " " {
-                        label_spans[pos] = Span::styled(ch.to_string(), label_style);
+                        label_spans[pos] = Span::styled(super::char_span(ch), label_style);
                     }
                 }
             }
@@ -225,13 +224,13 @@ pub fn render_sequence(
                 let center = col_width / 2;
                 for c in 0..col_width {
                     if c == center {
-                        arrow_spans.push(Span::styled(VLINE.to_string(), line_style));
+                        arrow_spans.push(Span::styled(VLINE, line_style));
                     } else {
-                        arrow_spans.push(Span::styled(" ".to_string(), msg_style));
+                        arrow_spans.push(Span::styled(" ", msg_style));
                     }
                 }
                 if i < n_part - 1 {
-                    arrow_spans.push(Span::styled(" ".to_string(), msg_style));
+                    arrow_spans.push(Span::styled(" ", msg_style));
                 }
             }
 
@@ -244,14 +243,14 @@ pub fn render_sequence(
 
             let line_ch = match msg.arrow_kind {
                 SeqArrowKind::Solid | SeqArrowKind::SolidOpen => HLINE,
-                SeqArrowKind::Dotted | SeqArrowKind::DottedOpen => '╌',
+                SeqArrowKind::Dotted | SeqArrowKind::DottedOpen => "╌",
             };
 
             for x in x_left..=x_right {
                 if x < arrow_spans.len() {
                     let existing = &arrow_spans[x];
                     if existing.content == " " {
-                        arrow_spans[x] = Span::styled(line_ch.to_string(), arrow_style);
+                        arrow_spans[x] = Span::styled(line_ch, arrow_style);
                     }
                 }
             }
@@ -286,12 +285,12 @@ pub fn render_sequence(
             };
 
             if head_x < arrow_spans.len() {
-                arrow_spans[head_x] = Span::styled(head_ch.to_string(), arrow_style);
+                arrow_spans[head_x] = Span::styled(super::char_span(head_ch), arrow_style);
             }
 
             let tail_ch = if go_right { '>' } else { '<' };
             if tail_x < arrow_spans.len() && arrow_spans[tail_x].content == " " {
-                arrow_spans[tail_x] = Span::styled(tail_ch.to_string(), arrow_style);
+                arrow_spans[tail_x] = Span::styled(super::char_span(tail_ch), arrow_style);
             }
 
             lines.push(Line::from(arrow_spans));
@@ -305,13 +304,13 @@ pub fn render_sequence(
             let center = col_width / 2;
             for c in 0..col_width {
                 if c == center {
-                    spans.push(Span::styled(VLINE.to_string(), lifeline_style));
+                    spans.push(Span::styled(VLINE, lifeline_style));
                 } else {
-                    spans.push(Span::styled(" ".to_string(), lifeline_style));
+                    spans.push(Span::styled(" ", lifeline_style));
                 }
             }
             if i < n_part - 1 {
-                spans.push(Span::styled(" ".to_string(), lifeline_style));
+                spans.push(Span::styled(" ", lifeline_style));
             }
         }
         spans

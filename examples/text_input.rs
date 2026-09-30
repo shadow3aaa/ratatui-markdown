@@ -5,7 +5,7 @@ use std::{cell::Cell, rc::Rc};
 
 use common::{restore_terminal, setup_terminal, Theme};
 use daat_locus_md::text_input::{
-    CursorBlinkController, CursorPosition, CursorShape, CursorStyle, InputMode, TextInput,
+    CursorBlinkController, CursorShape, CursorStyle, InputMode, TextInput,
 };
 use ratatui::{
     crossterm::event::{self, Event, KeyCode, KeyEventKind},
@@ -60,11 +60,7 @@ impl App {
         });
         let mut input = TextInput::new()
             .with_mode(InputMode::Edit)
-            .with_cursor_style(
-                CursorStyle::new()
-                    .with_shape(CursorShape::Block)
-                    .with_position(CursorPosition::OnChar),
-            )
+            .with_cursor_style(CursorStyle::new().with_shape(CursorShape::Block))
             .with_blink_controller(blink.clone())
             .with_placeholder("Type markdown here...");
         input.set_text(INITIAL_TEXT);
@@ -83,9 +79,7 @@ impl App {
             let mut new_input = TextInput::new()
                 .with_mode(self.input.mode())
                 .with_cursor_style(
-                    CursorStyle::new()
-                        .with_shape(CURSOR_SHAPES[self.cursor_shape_idx])
-                        .with_position(CursorPosition::OnChar),
+                    CursorStyle::new().with_shape(CURSOR_SHAPES[self.cursor_shape_idx]),
                 )
                 .with_blink_controller(self.blink.clone())
                 .with_placeholder("Type markdown here...");

@@ -241,7 +241,23 @@ pub(crate) fn child<'a>(
     pair: &pest::iterators::Pair<'a, Rule>,
     rule: Rule,
 ) -> Option<pest::iterators::Pair<'a, Rule>> {
-    children(pair, rule).into_iter().next()
+    fn first<'a>(
+        pair: &pest::iterators::Pair<'a, Rule>,
+        rule: Rule,
+    ) -> Option<pest::iterators::Pair<'a, Rule>> {
+        for inner in pair.clone().into_inner() {
+            if inner.as_rule() == rule {
+                return Some(inner);
+            }
+            if inner.as_rule() != Rule::quoted {
+                if let Some(found) = first(&inner, rule) {
+                    return Some(found);
+                }
+            }
+        }
+        None
+    }
+    first(pair, rule)
 }
 
 /// Text of a descendant rule, with surrounding quotes removed when the matched

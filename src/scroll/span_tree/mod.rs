@@ -239,16 +239,27 @@ impl SpanTree {
     }
 
     pub(in crate::scroll) fn scroll_to_selected(&mut self) {
-        if let Some(idx) = self.selected_index() {
-            let entry_start = self.line_offset_for_entry(idx);
-            let entry_end = self.line_count_up_to(idx);
-            let vp = self.viewport_height;
-
-            if entry_start < self.scroll_offset {
-                self.scroll_offset = entry_start;
-            } else if entry_end > self.scroll_offset + vp {
-                self.scroll_offset = entry_end.saturating_sub(vp);
+        let Some(selected) = self.selected_id.as_deref() else {
+            return;
+        };
+        let mut entry_start = 0usize;
+        let mut entry_end = None;
+        for entry in &self.entries {
+            let lines = entry.total_lines();
+            if entry.id == selected {
+                entry_end = Some(entry_start + lines);
+                break;
             }
+            entry_start += lines;
+        }
+        let Some(entry_end) = entry_end else {
+            return;
+        };
+        let vp = self.viewport_height;
+        if entry_start < self.scroll_offset {
+            self.scroll_offset = entry_start;
+        } else if entry_end > self.scroll_offset + vp {
+            self.scroll_offset = entry_end.saturating_sub(vp);
         }
     }
 

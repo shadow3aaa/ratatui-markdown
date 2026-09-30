@@ -24,11 +24,3 @@ pub(super) fn render_read_mode(
     let paragraph = ratatui::widgets::Paragraph::new(skipped);
     f.render_widget(paragraph, area);
 }
-
-#[cfg(feature = "markdown")]
-pub(super) fn rendered_height(text: &str, width: usize, theme: &impl RichTextTheme) -> u16 {
-    let renderer = MarkdownRenderer::new(width);
-    let blocks = renderer.parse(text);
-    let lines = renderer.render(&blocks, theme);
-    lines.len().min(u16::MAX as usize) as u16
-}

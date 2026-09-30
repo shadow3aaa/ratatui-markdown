@@ -7,7 +7,7 @@ use std::rc::Rc;
 
 use ratatui::{layout::Rect, Frame};
 pub use types::{
-    CursorBlinkController, CursorPosition, CursorShape, CursorStyle, InputMode, Selection,
+    CursorBlinkController, CursorShape, CursorStyle, InputMode, Selection,
     SelectionStyle,
 };
 
@@ -296,16 +296,6 @@ impl TextInput {
                 }
             }
         }
-    }
-
-    #[cfg(feature = "markdown")]
-    pub fn rendered_height(&self, width: usize, theme: &impl RichTextTheme) -> u16 {
-        read_render::rendered_height(&self.text, width, theme)
-    }
-
-    #[cfg(not(feature = "markdown"))]
-    pub fn rendered_height(&self, _width: usize, _theme: &impl RichTextTheme) -> u16 {
-        self.text.lines().count().max(1) as u16
     }
 }
 

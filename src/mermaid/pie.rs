@@ -6,8 +6,8 @@ use ratatui::{
 use super::types::PieChart;
 use crate::theme::RichTextTheme;
 
-const BLOCK: char = '█';
-const LIGHT_BLOCK: char = '░';
+const BLOCK: &str = "█";
+const LIGHT_BLOCK: &str = "░";
 
 pub fn parse_pie(source: &str) -> Option<PieChart> {
     let mut title: Option<String> = None;
@@ -82,7 +82,6 @@ pub fn render_pie(
     let bar_style = Style::default()
         .fg(theme.get_primary_color())
         .add_modifier(Modifier::BOLD);
-    let _bar_bg_style = Style::default().fg(theme.get_muted_text_color());
     let pct_style = Style::default()
         .fg(theme.get_secondary_color())
         .add_modifier(Modifier::BOLD);
@@ -149,10 +148,10 @@ pub fn render_pie(
         let pct_str = format!("{:.0}%", pct);
         let pct_w = pct_str.len();
 
-        let mut bar_str = BLOCK.to_string().repeat(bar_len);
+        let mut bar_str = BLOCK.repeat(bar_len);
         let bg_len = bar_max.saturating_sub(bar_len);
         if bg_len > 0 {
-            bar_str.push_str(&LIGHT_BLOCK.to_string().repeat(bg_len));
+            bar_str.push_str(&LIGHT_BLOCK.repeat(bg_len));
         }
 
         lines.push(Line::from(vec![

@@ -88,12 +88,3 @@ pub fn anchored_panel_scrollbar_area(panel_area: Rect, content_area: Rect) -> Re
         height: content_area.height,
     }
 }
-
-pub fn border_scrollbar_area(panel_area: Rect, content_area: Rect) -> Rect {
-    Rect {
-        x: panel_area.x + panel_area.width.saturating_sub(1),
-        y: content_area.y,
-        width: 1,
-        height: content_area.height,
-    }
-}

@@ -194,44 +194,36 @@ impl MarkdownRenderer {
     }
 
     pub(crate) fn tokenize(text: &str) -> Vec<TextToken> {
-        let text = text.replace('\t', "    ");
+        let expanded;
+        let text = if text.as_bytes().contains(&b'\t') {
+            expanded = text.replace('\t', "    ");
+            expanded.as_str()
+        } else {
+            text
+        };
         let mut tokens = Vec::new();
-        let mut current_word = String::new();
+        let mut word_start: Option<usize> = None;
 
-        for c in text.chars() {
-            if c == '\n' {
-                if !current_word.is_empty() {
-                    tokens.push(TextToken::Word(current_word));
-                    current_word = String::new();
+        for (idx, c) in text.char_indices() {
+            if c == '\n' || c == ' ' || Self::is_cjk(c) {
+                if let Some(start) = word_start.take() {
+                    tokens.push(TextToken::Word(text[start..idx].to_string()));
                 }
-                tokens.push(TextToken::Newline);
-                continue;
-            }
-
-            if c == ' ' {
-                if !current_word.is_empty() {
-                    tokens.push(TextToken::Word(current_word));
-                    current_word = String::new();
+                if c == '\n' {
+                    tokens.push(TextToken::Newline);
+                } else if c == ' ' {
+                    tokens.push(TextToken::Space);
+                } else {
+                    let end = idx + c.len_utf8();
+                    tokens.push(TextToken::Word(text[idx..end].to_string()));
                 }
-                tokens.push(TextToken::Space);
-                continue;
-            }
-
-            let is_cjk = Self::is_cjk(c);
-
-            if is_cjk {
-                if !current_word.is_empty() {
-                    tokens.push(TextToken::Word(current_word));
-                    current_word = String::new();
-                }
-                tokens.push(TextToken::Word(c.to_string()));
-            } else {
-                current_word.push(c);
+            } else if word_start.is_none() {
+                word_start = Some(idx);
             }
         }
 
-        if !current_word.is_empty() {
-            tokens.push(TextToken::Word(current_word));
+        if let Some(start) = word_start {
+            tokens.push(TextToken::Word(text[start..].to_string()));
         }
 
         tokens

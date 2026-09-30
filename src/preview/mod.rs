@@ -1,4 +1,4 @@
-use std::boxed::Box;
+use std::borrow::Cow;
 
 use ratatui::{
     layout::Rect,
@@ -218,18 +218,17 @@ impl MarkdownPreview {
         let mut regions: Vec<FocusableRegion> = Vec::new();
 
         if let Some(tree) = &self.tree {
-            let tree_lines = tree.render_lines(width, theme);
-            let tree_items = tree.build_focusable_items();
+            let (tree_lines, tree_items) = tree.flatten_view(width, theme);
             all_lines.extend(tree_lines);
             if !tree_items.is_empty() {
                 regions.push(FocusableRegion { items: tree_items });
             }
         }
 
-        let content = if self.strip_frontmatter {
+        let content: Cow<'_, str> = if self.strip_frontmatter {
             Self::strip_toml_frontmatter(&self.content)
         } else {
-            self.content.clone()
+            Cow::Borrowed(self.content.as_str())
         };
 
         if !content.trim().is_empty() {
@@ -298,10 +297,10 @@ impl MarkdownPreview {
         usize::from(inner_width).saturating_sub(self.scroll_view.effective_padding())
     }
 
-    fn strip_toml_frontmatter(content: &str) -> String {
+    fn strip_toml_frontmatter(content: &str) -> Cow<'_, str> {
         let trimmed = content.trim_start_matches('\n');
         if !trimmed.starts_with(FRONTMATTER_DELIMITER) {
-            return content.to_string();
+            return Cow::Borrowed(content);
         }
 
         let mut in_frontmatter = false;
@@ -323,7 +322,7 @@ impl MarkdownPreview {
             }
         }
 
-        content_lines.join("\n")
+        content_lines.join("\n").into()
     }
 }
 

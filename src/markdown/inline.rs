@@ -17,10 +17,9 @@ pub fn parse_inline_formatting(text: &str, theme: &impl RichTextTheme) -> Vec<Sp
         () => {
             if !current.is_empty() {
                 spans.push(Span::styled(
-                    current.clone(),
+                    std::mem::take(&mut current),
                     Style::default().fg(theme.get_text_color()),
                 ));
-                current.clear();
             }
         };
     }
@@ -199,7 +198,6 @@ pub fn parse_inline_formatting(text: &str, theme: &impl RichTextTheme) -> Vec<Sp
                         while url_end < len {
                             if chars[url_end] == ')' {
                                 let link_text: String = chars[i + 1..end_bracket].iter().collect();
-                                let _url: String = chars[url_start..url_end].iter().collect();
                                 flush_current!();
                                 spans.push(Span::styled(
                                     link_text,

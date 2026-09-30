@@ -6,8 +6,8 @@ use ratatui::{
 use super::types::{GanttChart, GanttSection, GanttTask};
 use crate::theme::RichTextTheme;
 
-const BLOCK: char = '█';
-const LIGHT_BLOCK: char = '░';
+const BLOCK: &str = "█";
+const LIGHT_BLOCK: &str = "░";
 
 pub fn parse_gantt(source: &str) -> Option<GanttChart> {
     let mut title: Option<String> = None;
@@ -124,7 +124,6 @@ pub fn render_gantt(
     let bar_style = Style::default()
         .fg(theme.get_primary_color())
         .add_modifier(Modifier::BOLD);
-    let _bar_bg_style = Style::default().fg(theme.get_muted_text_color());
     let dur_style = Style::default().fg(theme.get_info_color());
 
     let all_tasks: Vec<&GanttTask> = chart.sections.iter().flat_map(|s| &s.tasks).collect();
@@ -209,10 +208,10 @@ pub fn render_gantt(
             let bar_len = bar_len.max(4).min(bar_max.saturating_sub(bar_offset));
 
             let mut bar_str = " ".repeat(bar_offset);
-            bar_str.push_str(&BLOCK.to_string().repeat(bar_len));
+            bar_str.push_str(&BLOCK.repeat(bar_len));
             let bg_len = bar_max.saturating_sub(bar_offset).saturating_sub(bar_len);
             if bg_len > 0 {
-                bar_str.push_str(&LIGHT_BLOCK.to_string().repeat(bg_len));
+                bar_str.push_str(&LIGHT_BLOCK.repeat(bg_len));
             }
 
             let dur_text = task.duration.as_deref().unwrap_or("");

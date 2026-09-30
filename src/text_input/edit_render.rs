@@ -187,43 +187,32 @@ fn inline_content_style(_content: &str, theme: &impl RichTextTheme) -> Style {
 
 #[cfg(feature = "markdown")]
 fn style_block_marker(text: &str, theme: &impl RichTextTheme) -> Option<Vec<Span<'static>>> {
-    let blocks = crate::markdown::MarkdownRenderer::new(usize::MAX).parse(text);
-    match blocks.first() {
-        Some(
-            crate::markdown::MarkdownBlock::Heading1(content)
-            | crate::markdown::MarkdownBlock::Heading2(content)
-            | crate::markdown::MarkdownBlock::Heading3(content),
-        ) if blocks.len() == 1 => {
-            let marker_len = text.find(content.as_str()).unwrap_or(0);
-            let (marker, rest) = text.split_at(marker_len);
-            let mut spans = vec![Span::styled(
-                marker.to_string(),
-                Style::default()
-                    .fg(theme.get_primary_color())
-                    .add_modifier(Modifier::BOLD),
-            )];
-            if !rest.is_empty() {
-                spans.push(Span::styled(
-                    rest.to_string(),
-                    Style::default()
-                        .fg(theme.get_text_color())
-                        .add_modifier(Modifier::BOLD),
-                ));
-            }
-            Some(spans)
-        }
-        Some(crate::markdown::MarkdownBlock::ListItem(_, _))
-        | Some(crate::markdown::MarkdownBlock::TaskItem { .. })
-            if blocks.len() == 1 && text.starts_with(['-', '*', '+']) =>
-        {
-            let marker = Style::default().fg(theme.get_muted_text_color());
-            Some(vec![
-                Span::styled(text[..1].to_string(), marker),
-                Span::styled(text[1..].to_string(), Style::default().fg(theme.get_text_color())),
-            ])
-        }
-        _ => None,
+    let bytes = text.as_bytes();
+    let mut hashes = 0usize;
+    while hashes < bytes.len() && hashes < 6 && bytes[hashes] == b'#' {
+        hashes += 1;
     }
+    if hashes > 0 && bytes.get(hashes) == Some(&b' ') {
+        let marker_style = Style::default()
+            .fg(theme.get_primary_color())
+            .add_modifier(Modifier::BOLD);
+        let rest_style = Style::default()
+            .fg(theme.get_text_color())
+            .add_modifier(Modifier::BOLD);
+        let mut spans = vec![Span::styled(text[..hashes].to_string(), marker_style)];
+        if hashes < text.len() {
+            spans.push(Span::styled(text[hashes..].to_string(), rest_style));
+        }
+        return Some(spans);
+    }
+    if matches!(bytes.first(), Some(b'-' | b'*' | b'+')) && bytes.get(1) == Some(&b' ') {
+        let marker = Style::default().fg(theme.get_muted_text_color());
+        return Some(vec![
+            Span::styled(text[..1].to_string(), marker),
+            Span::styled(text[1..].to_string(), Style::default().fg(theme.get_text_color())),
+        ]);
+    }
+    None
 }
 
 enum EditSegment {

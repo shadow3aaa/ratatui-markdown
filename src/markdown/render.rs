@@ -20,34 +20,82 @@ use crate::{
 
 const LANG_MERMAID: &str = "mermaid";
 
-fn find_parent_pos(items: &[(usize, u8)], pos: usize) -> Option<usize> {
-    let indent = items[pos].1;
-    if indent == 0 {
-        return None;
-    }
-    let target = indent - 1;
-    for j in (0..pos).rev() {
-        if items[j].1 == target {
-            return Some(j);
-        } else if items[j].1 < target {
-            break;
-        }
-    }
-    None
+struct ListContextIndex {
+    by_block: Vec<Option<usize>>,
+    is_last: Vec<bool>,
+    ancestors_are_last: Vec<Vec<bool>>,
+    index_in_group: Vec<usize>,
 }
 
-fn has_sibling_after(items: &[(usize, u8)], pos: usize) -> bool {
-    let indent = items[pos].1;
-    let parent = find_parent_pos(items, pos);
-    for j in (pos + 1)..items.len() {
-        if items[j].1 == indent && find_parent_pos(items, j) == parent {
-            return true;
-        } else if items[j].1 < indent {
-            break;
+fn build_list_context_index(blocks: &[MarkdownBlock]) -> ListContextIndex {
+    let mut by_block = vec![None; blocks.len()];
+    let mut items: Vec<(usize, u8)> = Vec::new();
+    for (idx, block) in blocks.iter().enumerate() {
+        if let MarkdownBlock::ListItem(_, indent) = block {
+            by_block[idx] = Some(items.len());
+            items.push((idx, *indent));
         }
     }
-    false
+
+    let n = items.len();
+    let mut parent = vec![None; n];
+    let mut stack: Vec<usize> = Vec::new();
+    for pos in 0..n {
+        let indent = items[pos].1;
+        while stack
+            .last()
+            .is_some_and(|&p| items[p].1 >= indent)
+        {
+            stack.pop();
+        }
+        parent[pos] = stack.last().copied();
+        stack.push(pos);
+    }
+
+    let mut has_sibling_after = vec![false; n];
+    let mut next_same_parent: Vec<Option<usize>> = vec![None; n];
+    let mut next_root: Option<usize> = None;
+    for pos in (0..n).rev() {
+        match parent[pos] {
+            Some(p) => {
+                has_sibling_after[pos] = next_same_parent[p].is_some();
+                next_same_parent[p] = Some(pos);
+            }
+            None => {
+                has_sibling_after[pos] = next_root.is_some();
+                next_root = Some(pos);
+            }
+        }
+    }
+
+    let mut index_in_group = vec![0usize; n];
+    let mut seen_under: Vec<usize> = vec![0; n + 1];
+    for pos in 0..n {
+        let slot = parent[pos].unwrap_or(n);
+        index_in_group[pos] = seen_under[slot];
+        seen_under[slot] += 1;
+    }
+
+    let mut ancestors_are_last = vec![Vec::new(); n];
+    for pos in 0..n {
+        let mut chain = Vec::new();
+        let mut anc = parent[pos];
+        while let Some(p) = anc {
+            chain.push(!has_sibling_after[p]);
+            anc = parent[p];
+        }
+        chain.reverse();
+        ancestors_are_last[pos] = chain;
+    }
+
+    ListContextIndex {
+        by_block,
+        is_last: has_sibling_after.into_iter().map(|has| !has).collect(),
+        ancestors_are_last,
+        index_in_group,
+    }
 }
+
 
 fn default_image_fallback(alt: &str, path: &str) -> Line<'static> {
     let label = if alt.is_empty() {
@@ -81,8 +129,13 @@ impl MarkdownRenderer {
     ) -> Vec<Line<'static>> {
         let mut lines = Vec::new();
 
+        let list_index = if self.hooks.is_some() {
+            Some(build_list_context_index(blocks))
+        } else {
+            None
+        };
         for (block_idx, block) in blocks.iter().enumerate() {
-            self.render_block(block, block_idx, theme, blocks, &mut lines);
+            self.render_block(block, block_idx, theme, list_index.as_ref(), &mut lines);
         }
 
         lines
@@ -149,7 +202,6 @@ impl MarkdownRenderer {
                             width_cells: w_cells,
                             height_cells: h_cells,
                             image: ref_img.clone(),
-                            crop: None,
                         });
                     } else {
                         ctx.lines.push(default_image_fallback(alt, path));
@@ -194,7 +246,6 @@ impl MarkdownRenderer {
                                 width_cells: w_cells,
                                 height_cells: h_cells,
                                 image: img,
-                                crop: None,
                             });
                             ctx.lines.push(Line::from(Span::styled(
                                 format!("{ROUNDED_BL}{HLINE}"),
@@ -204,9 +255,9 @@ impl MarkdownRenderer {
                         }
                     }
                 }
-                self.render_block(block, _block_idx, theme, _blocks, ctx.lines);
+                self.render_block(block, _block_idx, theme, None, ctx.lines);
             }
-            _ => self.render_block(block, _block_idx, theme, _blocks, ctx.lines),
+            _ => self.render_block(block, _block_idx, theme, None, ctx.lines),
         }
     }
 
@@ -215,7 +266,7 @@ impl MarkdownRenderer {
         block: &MarkdownBlock,
         block_idx: usize,
         theme: &impl RichTextTheme,
-        blocks: &[MarkdownBlock],
+        list_index: Option<&ListContextIndex>,
         lines: &mut Vec<Line<'static>>,
     ) {
         let hooks = self.hooks.as_deref();
@@ -414,26 +465,22 @@ impl MarkdownRenderer {
                     lines.push(self.default_code_block_footer(theme));
                 }
             }
-            MarkdownBlock::InlineCode(code) => {
-                if let Some(h) = hooks {
-                    if let Some(custom) = h.inline_code(code) {
-                        lines.push(custom);
-                        return;
-                    }
-                }
-                let code = code.replace('\t', "    ");
-                lines.push(Line::from(Span::styled(
-                    format!("`{}`", code),
-                    Style::default().fg(theme.get_accent_yellow()),
-                )));
-            }
             MarkdownBlock::ListItem(text, indent) => {
-                let (is_last, ancestors_are_last, index_in_group) =
-                    Self::find_list_context(block_idx, blocks);
-
                 if let Some(h) = hooks {
+                    let list_pos = list_index
+                        .and_then(|index| index.by_block.get(block_idx).copied().flatten());
+                    let (is_last, ancestors_are_last, index_in_group) =
+                        if let (Some(index), Some(pos)) = (list_index, list_pos) {
+                            (
+                                index.is_last[pos],
+                                index.ancestors_are_last[pos].as_slice(),
+                                index.index_in_group[pos],
+                            )
+                        } else {
+                            (true, &[][..], 0)
+                        };
                     let marker =
-                        h.list_item_marker(*indent, is_last, &ancestors_are_last, index_in_group);
+                        h.list_item_marker(*indent, is_last, ancestors_are_last, index_in_group);
                     if marker.is_some() || h.list_item_content(text, *indent).is_some() {
                         let marker_str = marker.unwrap_or_else(|| "\u{2022} ".to_string());
                         if let Some(custom_content) = h.list_item_content(text, *indent) {
@@ -519,9 +566,20 @@ impl MarkdownRenderer {
                     )));
                 }
 
+                let child_index = if hooks.is_some() {
+                    Some(build_list_context_index(children))
+                } else {
+                    None
+                };
                 let mut inner_lines = Vec::new();
                 for (child_idx, child) in children.iter().enumerate() {
-                    self.render_block(child, child_idx, theme, children, &mut inner_lines);
+                    self.render_block(
+                        child,
+                        child_idx,
+                        theme,
+                        child_index.as_ref(),
+                        &mut inner_lines,
+                    );
                 }
 
                 for mut line in inner_lines {
@@ -587,52 +645,6 @@ impl MarkdownRenderer {
         }
     }
 
-    fn find_list_context(block_idx: usize, blocks: &[MarkdownBlock]) -> (bool, Vec<bool>, usize) {
-        let group_start = (0..=block_idx)
-            .rev()
-            .find(|&i| !matches!(blocks.get(i), Some(MarkdownBlock::ListItem(_, _))))
-            .map(|i| i + 1)
-            .unwrap_or(0);
-        let group_end = (block_idx..blocks.len())
-            .find(|&i| !matches!(blocks.get(i), Some(MarkdownBlock::ListItem(_, _))))
-            .unwrap_or(blocks.len());
-
-        let items: Vec<(usize, u8)> = blocks[group_start..group_end]
-            .iter()
-            .enumerate()
-            .filter_map(|(i, b)| match b {
-                MarkdownBlock::ListItem(_, indent) => Some((group_start + i, *indent)),
-                _ => None,
-            })
-            .collect();
-
-        let our_pos = match items.iter().position(|&(i, _)| i == block_idx) {
-            Some(p) => p,
-            None => return (true, Vec::new(), 0),
-        };
-
-        let our_indent = items[our_pos].1;
-
-        let is_last = !has_sibling_after(&items, our_pos);
-
-        let mut ancestors_are_last = Vec::new();
-        let mut anc_pos = find_parent_pos(&items, our_pos);
-        while let Some(p) = anc_pos {
-            ancestors_are_last.push(!has_sibling_after(&items, p));
-            anc_pos = find_parent_pos(&items, p);
-        }
-        ancestors_are_last.reverse();
-
-        let our_parent = find_parent_pos(&items, our_pos);
-        let index_in_group = items[..our_pos]
-            .iter()
-            .enumerate()
-            .filter(|&(_, &(_, ind))| ind == our_indent)
-            .filter(|&(pos, _)| find_parent_pos(&items, pos) == our_parent)
-            .count();
-
-        (is_last, ancestors_are_last, index_in_group)
-    }
 
     fn default_code_block_header(&self, lang: &str, theme: &impl RichTextTheme) -> Line<'static> {
         if !lang.is_empty() {
@@ -967,7 +979,7 @@ impl MarkdownRenderer {
                             let mut char_w = 0;
                             let mut chunk = String::new();
                             for ch in chars.drain(..) {
-                                let cw = Self::string_width(&ch.to_string());
+                                let cw = Self::display_width(ch);
                                 if char_w + cw > max_w && !chunk.is_empty() {
                                     current_line.push(Span::styled(chunk, style));
                                     lines.push(std::mem::take(&mut current_line));

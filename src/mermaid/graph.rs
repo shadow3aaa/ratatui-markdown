@@ -69,14 +69,6 @@ pub fn assign_layers(diagram: &MermaidDiagram) -> LayeredGraph {
         }
     }
 
-    // catch isolated / unreachable nodes
-    if processed < diagram.nodes.len() {
-        for node in &diagram.nodes {
-            if !layer_map.contains_key(node.id.as_str()) {
-                layer_map.insert(&node.id, 0);
-            }
-        }
-    }
 
     let max_layer = layer_map.values().copied().max().unwrap_or(0);
     let mut layers: Vec<Vec<String>> = vec![Vec::new(); max_layer + 1];
