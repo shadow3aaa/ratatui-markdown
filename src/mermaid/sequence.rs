@@ -325,7 +325,8 @@ mod grammar_tests {
 
     #[test]
     fn arrow_inside_message_text_is_not_a_second_arrow() {
-        let diagram = parse_sequence("sequenceDiagram\n    Alice->>Bob: use -> not -->> here").unwrap();
+        let diagram =
+            parse_sequence("sequenceDiagram\n    Alice->>Bob: use -> not -->> here").unwrap();
         assert_eq!(diagram.messages.len(), 1);
         assert_eq!(diagram.messages[0].from, "Alice");
         assert_eq!(diagram.messages[0].to, "Bob");

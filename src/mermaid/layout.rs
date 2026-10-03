@@ -82,7 +82,11 @@ pub fn compute_layout(
     let (h_spacing, v_spacing) =
         adapt_spacing(diagram, &graph.layers, node_v_height, max_width, max_height);
 
-    let nodes_by_id: HashMap<&str, _> = diagram.nodes.iter().map(|node| (node.id.as_str(), node)).collect();
+    let nodes_by_id: HashMap<&str, _> = diagram
+        .nodes
+        .iter()
+        .map(|node| (node.id.as_str(), node))
+        .collect();
 
     let mut layout_nodes = Vec::new();
 

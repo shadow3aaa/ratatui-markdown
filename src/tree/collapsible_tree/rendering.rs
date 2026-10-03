@@ -12,7 +12,8 @@ impl CollapsibleTree {
     }
 
     pub fn build_focusable_items(&self) -> Vec<FocusableItemRange> {
-        self.flatten_view(usize::MAX, &crate::theme::ThemeConfig::builder().build()).1
+        self.flatten_view(usize::MAX, &crate::theme::ThemeConfig::builder().build())
+            .1
     }
 
     pub fn flatten_view(
@@ -79,7 +80,10 @@ impl CollapsibleTree {
                     ])
                 }
             };
-            if matches!(entry.kind, EntryKind::Collapsed { .. } | EntryKind::Expanded { .. }) {
+            if matches!(
+                entry.kind,
+                EntryKind::Collapsed { .. } | EntryKind::Expanded { .. }
+            ) {
                 focusable.push(FocusableItemRange {
                     start_line: i,
                     end_line: i + 1,

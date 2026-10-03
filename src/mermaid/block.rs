@@ -174,7 +174,11 @@ mod tests {
             .ok_or_else(|| anyhow::anyhow!("failed to parse block"))?;
         assert_eq!(diagram.columns, 3);
         assert_eq!(
-            diagram.blocks.iter().map(|b| b.id.as_str()).collect::<Vec<_>>(),
+            diagram
+                .blocks
+                .iter()
+                .map(|b| b.id.as_str())
+                .collect::<Vec<_>>(),
             vec!["A", "B"]
         );
         Ok(())

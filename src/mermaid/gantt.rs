@@ -95,7 +95,8 @@ fn parse_task(line: &str) -> Option<GanttTask> {
         } else if duration.is_none() {
             if let Some(dur) = super::parser::child(&field, super::parser::Rule::gantt_dur) {
                 duration = Some(dur.as_str().to_string());
-            } else if let Some(other) = super::parser::child(&field, super::parser::Rule::gantt_other)
+            } else if let Some(other) =
+                super::parser::child(&field, super::parser::Rule::gantt_other)
             {
                 duration = Some(other.as_str().trim().to_string());
             }

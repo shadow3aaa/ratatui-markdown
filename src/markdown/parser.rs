@@ -557,7 +557,9 @@ impl MarkdownRenderer {
             if trimmed.is_empty() {
                 Self::flush_table(&mut table_buffer, &mut blocks, &mut paragraph_lines);
                 if !paragraph_lines.is_empty() {
-                    blocks.push(MarkdownBlock::Paragraph(std::mem::take(&mut paragraph_lines)));
+                    blocks.push(MarkdownBlock::Paragraph(std::mem::take(
+                        &mut paragraph_lines,
+                    )));
                 }
                 blocks.push(MarkdownBlock::BlankLine);
                 continue;
@@ -566,7 +568,9 @@ impl MarkdownRenderer {
             if let Some((alt, path)) = is_line_only_image(trimmed) {
                 Self::flush_table(&mut table_buffer, &mut blocks, &mut paragraph_lines);
                 if !paragraph_lines.is_empty() {
-                    blocks.push(MarkdownBlock::Paragraph(std::mem::take(&mut paragraph_lines)));
+                    blocks.push(MarkdownBlock::Paragraph(std::mem::take(
+                        &mut paragraph_lines,
+                    )));
                 }
                 blocks.push(MarkdownBlock::Image { alt, path });
                 continue;
@@ -575,7 +579,9 @@ impl MarkdownRenderer {
             if is_thematic_break(line) {
                 Self::flush_table(&mut table_buffer, &mut blocks, &mut paragraph_lines);
                 if !paragraph_lines.is_empty() {
-                    blocks.push(MarkdownBlock::Paragraph(std::mem::take(&mut paragraph_lines)));
+                    blocks.push(MarkdownBlock::Paragraph(std::mem::take(
+                        &mut paragraph_lines,
+                    )));
                 }
                 blocks.push(MarkdownBlock::HorizontalRule);
                 continue;
@@ -584,7 +590,9 @@ impl MarkdownRenderer {
             if let Some((level, text)) = parse_atx_heading(line) {
                 Self::flush_table(&mut table_buffer, &mut blocks, &mut paragraph_lines);
                 if !paragraph_lines.is_empty() {
-                    blocks.push(MarkdownBlock::Paragraph(std::mem::take(&mut paragraph_lines)));
+                    blocks.push(MarkdownBlock::Paragraph(std::mem::take(
+                        &mut paragraph_lines,
+                    )));
                 }
                 blocks.push(match level {
                     1 => MarkdownBlock::Heading1(text),
@@ -597,7 +605,9 @@ impl MarkdownRenderer {
             if trimmed.starts_with('>') {
                 Self::flush_table(&mut table_buffer, &mut blocks, &mut paragraph_lines);
                 if !paragraph_lines.is_empty() {
-                    blocks.push(MarkdownBlock::Paragraph(std::mem::take(&mut paragraph_lines)));
+                    blocks.push(MarkdownBlock::Paragraph(std::mem::take(
+                        &mut paragraph_lines,
+                    )));
                 }
                 let mut bq_lines: Vec<String> = Vec::new();
                 bq_lines.push(trimmed.to_string());
@@ -620,7 +630,9 @@ impl MarkdownRenderer {
             if let Some(marker) = parse_list_marker(line) {
                 Self::flush_table(&mut table_buffer, &mut blocks, &mut paragraph_lines);
                 if !paragraph_lines.is_empty() {
-                    blocks.push(MarkdownBlock::Paragraph(std::mem::take(&mut paragraph_lines)));
+                    blocks.push(MarkdownBlock::Paragraph(std::mem::take(
+                        &mut paragraph_lines,
+                    )));
                 }
                 match marker.kind {
                     ListMarkerKind::Task { checked } => {
@@ -638,9 +650,10 @@ impl MarkdownRenderer {
             }
 
             if is_table_row(line) {
-
                 if !paragraph_lines.is_empty() {
-                    blocks.push(MarkdownBlock::Paragraph(std::mem::take(&mut paragraph_lines)));
+                    blocks.push(MarkdownBlock::Paragraph(std::mem::take(
+                        &mut paragraph_lines,
+                    )));
                 }
                 table_buffer.push(trimmed.to_string());
                 continue;
@@ -711,7 +724,10 @@ impl MarkdownRenderer {
         (level, rest[i..].to_string())
     }
 
-    fn parse_nested_blockquote(mut lines: Vec<(u8, String)>, current_level: u8) -> Vec<MarkdownBlock> {
+    fn parse_nested_blockquote(
+        mut lines: Vec<(u8, String)>,
+        current_level: u8,
+    ) -> Vec<MarkdownBlock> {
         let mut children = Vec::new();
         while !lines.is_empty() {
             let deeper = lines[0].0 > current_level;
@@ -761,7 +777,13 @@ impl MarkdownRenderer {
         if blocks.is_empty() {
             let all_text = lines
                 .into_iter()
-                .filter_map(|(_, content)| if content.is_empty() { None } else { Some(content) })
+                .filter_map(|(_, content)| {
+                    if content.is_empty() {
+                        None
+                    } else {
+                        Some(content)
+                    }
+                })
                 .collect::<Vec<_>>();
             if !all_text.is_empty() {
                 blocks.push(MarkdownBlock::Paragraph(all_text));
@@ -835,7 +857,10 @@ mod grammar_tests {
             &escaped[0],
             MarkdownBlock::Image { alt, path } if alt == "a]b" && path == "img.png"
         ));
-        assert!(matches!(&parse("![alt](img.png")[0], MarkdownBlock::Paragraph(_)));
+        assert!(matches!(
+            &parse("![alt](img.png")[0],
+            MarkdownBlock::Paragraph(_)
+        ));
         assert!(matches!(
             &parse("![alt](img.png \"title\")")[0],
             MarkdownBlock::Image { path, .. } if path == "img.png"
@@ -847,37 +872,75 @@ mod grammar_tests {
         assert_eq!(parse("---"), vec![MarkdownBlock::HorizontalRule]);
         assert_eq!(parse("  ***"), vec![MarkdownBlock::HorizontalRule]);
         assert_eq!(parse("- - -"), vec![MarkdownBlock::HorizontalRule]);
-        assert!(matches!(&parse("--- not a rule")[0], MarkdownBlock::Paragraph(_)));
-        assert!(matches!(&parse("----title")[0], MarkdownBlock::Paragraph(_)));
+        assert!(matches!(
+            &parse("--- not a rule")[0],
+            MarkdownBlock::Paragraph(_)
+        ));
+        assert!(matches!(
+            &parse("----title")[0],
+            MarkdownBlock::Paragraph(_)
+        ));
     }
 
     #[test]
     fn atx_heading_allows_indent_and_strips_closing() {
-        assert_eq!(parse("# Hello"), vec![MarkdownBlock::Heading1("Hello".into())]);
-        assert_eq!(parse("  ## Section ##"), vec![MarkdownBlock::Heading2("Section".into())]);
-        assert_eq!(parse("### Sub #"), vec![MarkdownBlock::Heading3("Sub".into())]);
-        assert!(matches!(&parse("#not a heading")[0], MarkdownBlock::Paragraph(_)));
-        assert!(matches!(&parse("    # indented too far")[0], MarkdownBlock::Paragraph(_)));
+        assert_eq!(
+            parse("# Hello"),
+            vec![MarkdownBlock::Heading1("Hello".into())]
+        );
+        assert_eq!(
+            parse("  ## Section ##"),
+            vec![MarkdownBlock::Heading2("Section".into())]
+        );
+        assert_eq!(
+            parse("### Sub #"),
+            vec![MarkdownBlock::Heading3("Sub".into())]
+        );
+        assert!(matches!(
+            &parse("#not a heading")[0],
+            MarkdownBlock::Paragraph(_)
+        ));
+        assert!(matches!(
+            &parse("    # indented too far")[0],
+            MarkdownBlock::Paragraph(_)
+        ));
     }
 
     #[test]
     fn lists_recognize_markers_tasks_and_ordered() {
         assert!(matches!(&parse("- item")[0], MarkdownBlock::ListItem(text, _) if text == "item"));
-        assert!(matches!(&parse("- [x] done")[0], MarkdownBlock::TaskItem { text, checked: true, .. } if text == "done"));
-        assert!(matches!(&parse("1. first")[0], MarkdownBlock::ListItem(text, _) if text == "first"));
-        assert!(matches!(&parse("12) twelfth")[0], MarkdownBlock::ListItem(text, _) if text == "twelfth"));
-        assert!(matches!(&parse("1.2 not a list")[0], MarkdownBlock::Paragraph(_)));
-        assert!(matches!(&parse("not. a list")[0], MarkdownBlock::Paragraph(_)));
+        assert!(
+            matches!(&parse("- [x] done")[0], MarkdownBlock::TaskItem { text, checked: true, .. } if text == "done")
+        );
+        assert!(
+            matches!(&parse("1. first")[0], MarkdownBlock::ListItem(text, _) if text == "first")
+        );
+        assert!(
+            matches!(&parse("12) twelfth")[0], MarkdownBlock::ListItem(text, _) if text == "twelfth")
+        );
+        assert!(matches!(
+            &parse("1.2 not a list")[0],
+            MarkdownBlock::Paragraph(_)
+        ));
+        assert!(matches!(
+            &parse("not. a list")[0],
+            MarkdownBlock::Paragraph(_)
+        ));
     }
 
     #[test]
     fn blockquote_reuses_block_parser() {
-        let blocks = parse("> # Title\n> - [ ] task\n> 1. ordered\n> | A | B |\n> | --- | --- |\n> | 1 | 2 |");
+        let blocks = parse(
+            "> # Title\n> - [ ] task\n> 1. ordered\n> | A | B |\n> | --- | --- |\n> | 1 | 2 |",
+        );
         let MarkdownBlock::Blockquote { children, .. } = &blocks[0] else {
             panic!("expected blockquote, got {blocks:?}");
         };
         assert!(matches!(&children[0], MarkdownBlock::Heading1(text) if text == "Title"));
-        assert!(matches!(&children[1], MarkdownBlock::TaskItem { checked: false, .. }));
+        assert!(matches!(
+            &children[1],
+            MarkdownBlock::TaskItem { checked: false, .. }
+        ));
         assert!(matches!(&children[2], MarkdownBlock::ListItem(text, _) if text == "ordered"));
         assert!(matches!(&children[3], MarkdownBlock::Table { .. }));
     }
@@ -888,12 +951,20 @@ mod grammar_tests {
         let MarkdownBlock::Blockquote { children, .. } = &blocks[0] else {
             panic!("expected outer blockquote, got {blocks:?}");
         };
-        let MarkdownBlock::Blockquote { children: inner, level, .. } = &children[0] else {
+        let MarkdownBlock::Blockquote {
+            children: inner,
+            level,
+            ..
+        } = &children[0]
+        else {
             panic!("expected nested blockquote, got {children:?}");
         };
         assert_eq!(*level, 2);
         assert!(matches!(&inner[0], MarkdownBlock::Heading1(text) if text == "Title"));
-        assert!(matches!(&inner[1], MarkdownBlock::TaskItem { checked: false, .. }));
+        assert!(matches!(
+            &inner[1],
+            MarkdownBlock::TaskItem { checked: false, .. }
+        ));
         assert!(matches!(&inner[2], MarkdownBlock::ListItem(text, _) if text == "ordered"));
         assert!(matches!(&inner[3], MarkdownBlock::Table { .. }));
     }
@@ -907,6 +978,9 @@ mod grammar_tests {
         assert_eq!(headers, &vec!["A".to_string(), "B".to_string()]);
         assert_eq!(rows[0][0], "a|b");
         assert_eq!(rows[0][1], "`x|y`");
-        assert!(matches!(&parse("| just | pipes |")[0], MarkdownBlock::Paragraph(_)));
+        assert!(matches!(
+            &parse("| just | pipes |")[0],
+            MarkdownBlock::Paragraph(_)
+        ));
     }
 }

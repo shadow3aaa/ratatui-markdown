@@ -1,8 +1,9 @@
-use crate::theme::RichTextTheme;
-use ratatui::{layout::Rect, text::Line, Frame};
-
 #[cfg(feature = "markdown")]
 use crate::markdown::MarkdownRenderer;
+#[cfg(feature = "markdown")]
+use crate::theme::RichTextTheme;
+#[cfg(feature = "markdown")]
+use ratatui::{layout::Rect, text::Line, Frame};
 
 #[cfg(feature = "markdown")]
 pub(super) fn render_read_mode(

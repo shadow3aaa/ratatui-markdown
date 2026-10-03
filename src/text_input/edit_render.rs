@@ -128,7 +128,11 @@ fn style_source_spans(text: &str, theme: &impl RichTextTheme) -> Vec<Span<'stati
                     ));
                 }
             }
-            EditSegment::Delimited { open, content, close } => {
+            EditSegment::Delimited {
+                open,
+                content,
+                close,
+            } => {
                 if open == "[" && close == ")" {
                     push_link_spans(&mut spans, &content, theme);
                 } else {
@@ -209,7 +213,10 @@ fn style_block_marker(text: &str, theme: &impl RichTextTheme) -> Option<Vec<Span
         let marker = Style::default().fg(theme.get_muted_text_color());
         return Some(vec![
             Span::styled(text[..1].to_string(), marker),
-            Span::styled(text[1..].to_string(), Style::default().fg(theme.get_text_color())),
+            Span::styled(
+                text[1..].to_string(),
+                Style::default().fg(theme.get_text_color()),
+            ),
         ]);
     }
     None

@@ -336,7 +336,8 @@ fn parse_member(line: &str) -> Option<ClassMember> {
         "~" => Visibility::Internal,
         _ => Visibility::Internal,
     };
-    let rest = super::parser::text_of(&parsed, super::parser::Rule::member_rest).unwrap_or_default();
+    let rest =
+        super::parser::text_of(&parsed, super::parser::Rule::member_rest).unwrap_or_default();
     let rest = rest.trim();
     let is_method = rest.contains('(');
 

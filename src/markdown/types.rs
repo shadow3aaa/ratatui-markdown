@@ -45,7 +45,6 @@ impl MarkdownBlock {
             prefix_override: None,
         }
     }
-
 }
 
 #[derive(Debug)]

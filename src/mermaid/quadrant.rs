@@ -91,12 +91,14 @@ pub fn parse_quadrant(source: &str) -> Option<QuadrantChart> {
         }
 
         if let Some(point) = super::parser::parse_rule(super::parser::Rule::quad_point, line) {
-            let label = super::parser::text_of(&point, super::parser::Rule::quad_label)
-                .unwrap_or_default();
+            let label =
+                super::parser::text_of(&point, super::parser::Rule::quad_label).unwrap_or_default();
             let nums = super::parser::children(&point, super::parser::Rule::number);
             if nums.len() == 2 && !label.is_empty() {
-                if let (Ok(x), Ok(y)) = (nums[0].as_str().parse::<f64>(), nums[1].as_str().parse::<f64>())
-                {
+                if let (Ok(x), Ok(y)) = (
+                    nums[0].as_str().parse::<f64>(),
+                    nums[1].as_str().parse::<f64>(),
+                ) {
                     points.push(QuadrantPoint { label, x, y });
                 }
             }

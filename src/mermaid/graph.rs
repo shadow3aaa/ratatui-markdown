@@ -69,7 +69,6 @@ pub fn assign_layers(diagram: &MermaidDiagram) -> LayeredGraph {
         }
     }
 
-
     let max_layer = layer_map.values().copied().max().unwrap_or(0);
     let mut layers: Vec<Vec<String>> = vec![Vec::new(); max_layer + 1];
     for node in &diagram.nodes {

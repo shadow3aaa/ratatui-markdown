@@ -42,10 +42,7 @@ fn build_list_context_index(blocks: &[MarkdownBlock]) -> ListContextIndex {
     let mut stack: Vec<usize> = Vec::new();
     for pos in 0..n {
         let indent = items[pos].1;
-        while stack
-            .last()
-            .is_some_and(|&p| items[p].1 >= indent)
-        {
+        while stack.last().is_some_and(|&p| items[p].1 >= indent) {
             stack.pop();
         }
         parent[pos] = stack.last().copied();
@@ -95,7 +92,6 @@ fn build_list_context_index(blocks: &[MarkdownBlock]) -> ListContextIndex {
         index_in_group,
     }
 }
-
 
 fn default_image_fallback(alt: &str, path: &str) -> Line<'static> {
     let label = if alt.is_empty() {
@@ -493,7 +489,7 @@ impl MarkdownRenderer {
                         } else {
                             let marker_width = Self::string_width(&marker_str);
                             let cont_indent = h
-                                .tree_continuation_prefix(*indent, &ancestors_are_last)
+                                .tree_continuation_prefix(*indent, ancestors_are_last)
                                 .unwrap_or_else(|| " ".repeat(marker_width));
                             let content_width = self.max_width.saturating_sub(marker_width);
                             let wrapped = if content_width > 0 {
@@ -644,7 +640,6 @@ impl MarkdownRenderer {
             }
         }
     }
-
 
     fn default_code_block_header(&self, lang: &str, theme: &impl RichTextTheme) -> Line<'static> {
         if !lang.is_empty() {
